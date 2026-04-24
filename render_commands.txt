@@ -1,0 +1,9 @@
+./render_video.sh RowhammerIntro -pqh
+
+./render_video.sh HammingFails -pqh
+
+./render_video.sh LDPCSolution -pqh
+
+./render_video.sh RealWorld -pqh
+
+./render_video.sh all -pqh

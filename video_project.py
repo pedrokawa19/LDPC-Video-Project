@@ -3,8 +3,8 @@ from manim import *
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scene 1 — RowhammerIntro
-# Script 1:  81 words × 0.4 sec/word = 32.4 sec
-# Script 2:  68 words × 0.4 sec/word = 27.2 sec
+# Jongwook voiceover Part A (title+binary): ~78 words × 0.4 = 31.2 sec
+# Jongwook voiceover Part B (DRAM grid):  ~111 words × 0.4 = 44.4 sec
 # ─────────────────────────────────────────────────────────────────────────────
 class RowhammerIntro(Scene):
     def construct(self):
@@ -15,6 +15,7 @@ class RowhammerIntro(Scene):
 
         # "We live in a world entirely dependent on digital data."
         # 10 words × 0.4 = 4.0 sec
+        # (title visible through first sentence)
         title    = Text("Low Density Parity Check Codes", font_size=64, weight=BOLD)
         subtitle = Text("& their Applications", font_size=38, color=YELLOW)
         subtitle.next_to(title, DOWN, buff=0.4)
@@ -29,9 +30,15 @@ class RowhammerIntro(Scene):
         # 25 words × 0.4 = 10.0 sec
         self.wait(10.0)
 
-        # "This is where coding theory comes in."
-        # 7 words × 0.4 = 2.8 sec
-        self.wait(2.8)
+        # "This is where coding theory comes in. Coding theory is the
+        #  mathematical study of how to add redundancy to data so that we can
+        #  detect and correct errors introduced by noise."
+        # 33 words × 0.4 = 13.2 sec
+        self.wait(13.2)
+
+        # "Today, we focus on a specific failure mode inside modern computers
+        #  called Rowhammer."
+        # 14 words × 0.4 = 5.6 sec  (Rowhammer label covers this)
 
         # Fade out title → transition into binary stream
         self.play(FadeOut(title_group), run_time=0.8)
@@ -55,18 +62,16 @@ class RowhammerIntro(Scene):
             for (x, y), b in zip(BIT_POSITIONS, BIT_VALUES)
         ])
 
-        # "Coding theory is the mathematical study of how to transmit and store
-        #  data reliably, even when physical interference tries to corrupt it."
-        # 23 words × 0.4 = 9.2 sec  (0.8 fade-out + 1.5 fade-in already account for part)
+        # Binary stream is visible during the transition — show briefly
         self.play(FadeIn(bits, lag_ratio=0.04), run_time=1.5)
-        self.wait(9.2 - 0.8 - 1.5)   # 6.9 sec remaining
+        self.wait(1.5)   # brief pause on binary stream
 
-        # "Today, we are looking at a specific physical interference happening
-        #  inside our computers called Rowhammer."
-        # 16 words × 0.4 = 6.4 sec
+        # "Today, we focus on a specific failure mode inside modern computers
+        #  called Rowhammer."
+        # 14 words × 0.4 = 5.6 sec
         rowhammer_label = Text("Rowhammer", font_size=80, color=RED, weight=BOLD)
         self.play(FadeOut(bits), FadeIn(rowhammer_label), run_time=1.0)
-        self.wait(6.4 - 1.0)   # 5.4 sec
+        self.wait(5.6 - 1.0)   # 4.6 sec
         self.play(FadeOut(rowhammer_label), run_time=0.8)
 
         # ═════════════════════════════════════════════════════════════════════
@@ -120,20 +125,17 @@ class RowhammerIntro(Scene):
         dram_title.to_edge(UP, buff=0.35)
 
         # "Modern computer memory, or DRAM, is arranged in a massive grid of
-        #  rows and columns."
-        # 15 words × 0.4 = 6.0 sec
+        #  rows and columns. As manufacturers pack these rows closer together
+        #  to increase capacity, a dangerous electrical vulnerability becomes
+        #  more prominent."
+        # 36 words × 0.4 = 14.4 sec
         self.play(FadeIn(dram_title), Write(row_labels), run_time=1.0)
         self.play(FadeIn(all_cells_vgroup, lag_ratio=0.03), run_time=1.5)
-        self.wait(6.0 - 1.0 - 1.5)   # 3.5 sec remaining
-
-        # "As manufacturers pack these rows closer together to increase capacity,
-        #  a dangerous electrical vulnerability emerges."
-        # 14 words × 0.4 = 5.6 sec
-        self.wait(5.6)
+        self.wait(14.4 - 1.0 - 1.5)   # 11.9 sec remaining
 
         # "If a malicious program repeatedly accesses, or 'hammers,' a specific
         #  row of memory, the electrical charge leaks."
-        # 17 words × 0.4 = 6.8 sec
+        # 18 words × 0.4 = 7.2 sec
 
         # Colour hammer row red
         self.play(
@@ -153,11 +155,11 @@ class RowhammerIntro(Scene):
             self.play(*[cells[HAMMER_ROW][c][0].animate.set_fill(RED, opacity=0.6)
                         for c in range(COLS)], run_time=0.25)
 
-        self.wait(6.8 - 0.6 - 0.4 - 3 * 0.5)   # 4.3 sec remaining
+        self.wait(7.2 - 0.6 - 0.4 - 3 * 0.5)   # 4.7 sec remaining
 
         # "This can physically flip the 1s and 0s in the adjacent rows,
         #  corrupting data or allowing hackers to bypass security privileges."
-        # 22 words × 0.4 = 8.8 sec
+        # 21 words × 0.4 = 8.4 sec
 
         # Cells to flip — 3 from Row 1 (above) + 2 from Row 3 (below)
         FLIP_IDX = [(1, 1), (1, 3), (3, 0), (3, 2), (3, 4)]
@@ -181,13 +183,18 @@ class RowhammerIntro(Scene):
             FadeIn(flip_note),
             run_time=1.2
         )
-        self.wait(8.8 - 1.2)   # 7.6 sec
+        # "Unlike random cosmic-ray bit flips, Rowhammer produces structured
+        #  errors — burst errors clustered in nearby memory cells. This matters
+        #  because Hamming codes assume random independent errors. Rowhammer
+        #  violates this assumption entirely."
+        # 8.4 + 37 words × 0.4 = 8.4 + 14.8 = 23.2 sec total for flip section
+        self.wait(23.2 - 1.2)   # 22.0 sec
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scene 2 — HammingFails
-# Script 1:  58 words × 0.4 sec/word = 23.2 sec
-# Script 2:  54 words × 0.4 sec/word = 21.6 sec
+# Eli voiceover Part A (SEC-DED intro):  ~67 words × 0.4 = 26.8 sec
+# Eli voiceover Part B (multi-bit fail): ~118 words × 0.4 = 47.2 sec
 # ─────────────────────────────────────────────────────────────────────────────
 class HammingFails(Scene):
     def construct(self):
@@ -250,16 +257,17 @@ class HammingFails(Scene):
         # ═════════════════════════════════════════════════════════════════════
 
         # "To fight bit flips, DRAM uses Error Correcting Codes,
-        #  specifically SEC-DED Hamming codes."
-        # 13 words × 0.4 = 5.2 sec
+        #  specifically SEC-DED Hamming codes. Before data is stored, it is
+        #  mathematically encoded with extra parity bits."
+        # 27 words × 0.4 = 10.8 sec
         self.play(FadeIn(title), run_time=0.6)
         self.play(FadeIn(block_group, lag_ratio=0.1), FadeIn(type_labels), run_time=1.5)
         self.play(FadeIn(legend), run_time=0.4)
-        self.wait(5.2 - 0.6 - 1.5 - 0.4)   # 2.7 sec
+        self.wait(10.8 - 0.6 - 1.5 - 0.4)   # 8.3 sec
 
         # "Before data is stored, it is mathematically encoded with extra parity bits."
-        # 12 words × 0.4 = 4.8 sec
-        # Pulse the parity blocks to draw the viewer's attention
+        # Already counted above — pulse parity during the same window
+        # 0.4 + 0.4 = 0.8 sec for parity pulse
         self.play(
             *[blocks[i][0].animate.set_fill(GRAY, opacity=0.85) for i in range(4, N)],
             run_time=0.4
@@ -268,7 +276,6 @@ class HammingFails(Scene):
             *[blocks[i][0].animate.set_fill(DARK_GRAY, opacity=0.55) for i in range(4, N)],
             run_time=0.4
         )
-        self.wait(4.8 - 0.4 - 0.4)   # 4.0 sec
 
         # "When the data is read back, the system checks these bits."
         # 11 words × 0.4 = 4.4 sec
@@ -325,32 +332,37 @@ class HammingFails(Scene):
             run_time=0.8
         )
 
-        # "But here is the problem."
-        # 5 words × 0.4 = 2.0 sec
+        # "But here is the problem. SEC-DED stands for Single Error Correction,
+        #  Double Error Detection. It can correct exactly one bit error."
+        # 22 words × 0.4 = 8.8 sec
         problem_text = Text("But here is the problem.", font_size=34, color=YELLOW, weight=BOLD)
         problem_text.to_edge(DOWN, buff=1.2)
         self.play(FadeOut(legend), FadeIn(problem_text), run_time=0.5)
-        self.wait(2.0 - 0.5)   # 1.5 sec
+        self.wait(2.0 - 0.5)   # show "the problem" briefly (2.0 sec)
 
-        # "SEC-DED stands for Single Error Correction, Double Error Detection."
-        # 9 words × 0.4 = 3.6 sec
+        # SEC-DED description appears
         sec_ded_text = Text(
             "SEC-DED = Single Error Correction, Double Error Detection",
             font_size=23, color=WHITE
         )
         sec_ded_text.next_to(block_group, DOWN, buff=0.85)
         self.play(FadeOut(problem_text), FadeIn(sec_ded_text), run_time=0.5)
-        self.wait(3.6 - 0.5)   # 3.1 sec
+        self.wait(3.6 - 0.5)   # 3.1 sec  (fills remaining of 8.8-sec window)
 
-        # "It can only fix one mistake at a time."
-        # 9 words × 0.4 = 3.6 sec
+        # "It can only fix one mistake at a time. For example, if two bits
+        #  flip at once, the parity checks produce a pattern that could
+        #  correspond to multiple possible error locations."
+        # 35 words × 0.4 = 14.0 sec
         limit_text = Text("Can fix: 1 error only", font_size=24, color=RED_B)
         limit_text.next_to(sec_ded_text, DOWN, buff=0.35)
         self.play(FadeIn(limit_text), run_time=0.4)
-        self.wait(3.6 - 0.4)   # 3.2 sec
+        self.wait(14.0 - 0.4)   # 13.6 sec
 
-        # "A Rowhammer attack causes multiple bits to flip simultaneously."
-        # 9 words × 0.4 = 3.6 sec
+        # "A Rowhammer attack causes multiple bits to flip simultaneously.
+        #  Rowhammer doesn't cause isolated errors; it creates bursts of
+        #  multiple bit flips at once, which violates the assumptions that
+        #  Hamming codes rely on."
+        # 36 words × 0.4 = 14.4 sec
         MULTI_IDX = [0, 2, 3]   # D1, D3, D4 all flip at once
         flip_lbls = [
             Text(str(1 - BIT_VALUES[i]), font_size=30, color=WHITE)
@@ -366,11 +378,12 @@ class HammingFails(Scene):
         multi_note = Text("3 simultaneous bit flips!", font_size=22, color=RED, weight=BOLD)
         multi_note.next_to(block_group, UP, buff=0.3)
         self.play(FadeIn(multi_note), run_time=0.3)
-        self.wait(3.6 - 0.7 - 0.3)   # 2.6 sec
+        self.wait(14.4 - 0.7 - 0.3)   # 13.4 sec
 
-        # "The standard Hamming code is instantly overwhelmed,
-        #  leaving the system completely compromised."
-        # 12 words × 0.4 = 4.8 sec
+        # "The standard Hamming code can be instantly overwhelmed, leaving the
+        #  system compromised. To protect modern DRAM, we need a mathematically
+        #  stronger solution."
+        # 24 words × 0.4 = 9.6 sec
         x_marks = VGroup(*[
             Text("X", font_size=48, color=RED_D, weight=BOLD).move_to(blocks[i][0])
             for i in range(N)
@@ -386,10 +399,10 @@ class HammingFails(Scene):
             run_time=0.7
         )
         self.play(FadeIn(x_marks), FadeIn(fail_banner), run_time=0.6)
-        self.wait(4.8 - 0.7 - 0.6)   # 3.5 sec
+        self.wait(9.6 - 0.7 - 0.6)   # 8.3 sec
 
         # "To protect modern DRAM, we need a mathematically stronger shield."
-        # 10 words × 0.4 = 4.0 sec
+        # Already counted above — shield text visible during same block
         shield_text = Text(
             "We need a mathematically stronger shield.",
             font_size=30, color=YELLOW_B
@@ -410,11 +423,11 @@ class HammingFails(Scene):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scene 3 — LDPCSolution
-# Script 1:  62 words × 0.4 sec/word = 24.8 sec
-# Script 2:  84 words × 0.4 sec/word = 33.6 sec
-# Script 3:  59 words × 0.4 sec/word = 23.6 sec
-# Script 4:  72 words × 0.4 sec/word = 28.8 sec
-# Script 5:  87 words × 0.4 sec/word = 34.8 sec
+# Pedro Part 1 (intro/Gallager):      ~79 words × 0.4 = 31.6 sec
+# Pedro Part 2 (sparse matrix):       ~90 words × 0.4 = 36.0 sec
+# Pedro Part 3 (Tanner graph):        ~75 words × 0.4 = 30.0 sec
+# Pedro Part 4 (Rowhammer + IBP):     ~90 words × 0.4 = 36.0 sec
+# Pedro Part 5 (belief propagation):  ~88 words × 0.4 = 35.2 sec
 # ─────────────────────────────────────────────────────────────────────────────
 class LDPCSolution(Scene):
     def construct(self):
@@ -437,9 +450,12 @@ class LDPCSolution(Scene):
         # PART 1 — LDPC intro: title + sender/receiver diagram
         # ═════════════════════════════════════════════════════════════════════
 
-        # "To solve the Rowhammer problem, we can replace outdated Hamming
-        #  codes with Low-Density Parity-Check codes, or LDPC."
-        # 20 words × 0.4 = 8.0 sec
+        # "To solve the Rowhammer problem, we can replace Hamming codes with
+        #  Low-Density Parity-Check codes, or LDPC. Invented by Robert Gallager
+        #  at MIT in 1960, these codes were actually ignored for decades because
+        #  early computers weren't powerful enough to run them. Today, they are
+        #  our best mathematical defense against complex multi-bit errors."
+        # 66 words × 0.4 = 26.4 sec for this whole Part 1 block
         ldpc_title = Text("LDPC CODES", font_size=72, color=YELLOW, weight=BOLD)
         ldpc_title.to_edge(UP, buff=0.55)
 
@@ -448,12 +464,10 @@ class LDPCSolution(Scene):
 
         self.play(Write(ldpc_title), run_time=1.2)
         self.play(FadeIn(subtitle1), run_time=0.6)
-        self.wait(8.0 - 1.2 - 0.6)   # 6.2 sec
+        self.wait(8.0 - 1.2 - 0.6)   # 6.2 sec (first sentence settling)
 
-        # "Invented by Robert Gallager at MIT in 1960, these codes were actually
-        #  ignored for decades because early computers weren't powerful enough
-        #  to run them."
-        # 28 words × 0.4 = 11.2 sec
+        # "Invented by Robert Gallager at MIT in 1960 ..."
+        # Gallager + sender/receiver diagram shown during this window
         gallager = Text("Robert Gallager, MIT, 1960", font_size=26, color=BLUE_B)
         gallager.next_to(subtitle1, DOWN, buff=0.55)
 
@@ -486,17 +500,17 @@ class LDPCSolution(Scene):
             run_time=1.2
         )
         self.play(FadeIn(noise_zap), run_time=0.4)
-        self.wait(11.2 - 0.5 - 1.2 - 0.4)   # 9.1 sec
+        self.wait(11.2 - 0.5 - 1.2 - 0.4)   # 9.1 sec  (covers Gallager + sender/receiver)
 
         # "Today, they are our best mathematical defense against complex
         #  multi-bit errors."
-        # 14 words × 0.4 = 5.6 sec
+        # 12 words × 0.4 = 4.8 sec
         defense_text = Text(
             "Best defense against multi-bit errors",
             font_size=27, color=GREEN_B
         ).move_to([0, -2.2, 0])
         self.play(FadeIn(defense_text), run_time=0.5)
-        self.wait(5.6 - 0.5)   # 5.1 sec
+        self.wait(4.8 - 0.5)   # 4.3 sec
 
         self.play(
             FadeOut(VGroup(
@@ -511,12 +525,15 @@ class LDPCSolution(Scene):
         # PART 2 — Sparse matrix + low-density triangle visual
         # ═════════════════════════════════════════════════════════════════════
 
-        # "The secret lies in the name: Low-Density."
-        # 8 words × 0.4 = 3.2 sec
+        # "The secret lies in the name: Low-Density. An LDPC code is defined
+        #  by a sparse parity-check matrix. In linear algebra, a sparse matrix
+        #  is just a grid filled mostly with zeros, and only a very small number
+        #  of ones."
+        # 40 words × 0.4 = 16.0 sec
         secret_title = Text("The Secret: Low-Density", font_size=40, color=YELLOW, weight=BOLD)
         secret_title.to_edge(UP, buff=0.45)
         self.play(FadeIn(secret_title), run_time=0.6)
-        self.wait(3.2 - 0.6)   # 2.6 sec
+        self.wait(3.2 - 0.6)   # 2.6 sec (first sentence beat)
 
         # Sparse 3×7 matrix data — matches EDGES topology above
         # Row 0: bits 0,1,3 → cols 0,1,3 = 1; rest = 0
@@ -560,7 +577,7 @@ class LDPCSolution(Scene):
         mat_label.move_to([-2.8, -0.55, 0])
 
         # "An LDPC code is defined by a sparse parity-check matrix."
-        # 11 words × 0.4 = 4.4 sec
+        # Matrix appears during this window
         self.play(
             FadeIn(mat_bracket_l), FadeIn(mat_bracket_r),
             FadeIn(matrix_vgroup, lag_ratio=0.03),
@@ -570,37 +587,33 @@ class LDPCSolution(Scene):
         self.wait(4.4 - 1.5 - 0.4)   # 2.5 sec
 
         # "In linear algebra, a sparse matrix is just a grid filled mostly with
-        #  zeros, and only a very small number of ones."
-        # 21 words × 0.4 = 8.4 sec
-        # Pulse highlight all 1s
-        one_cells = [
-            matrix_cells[r][c]
-            for r in range(MAT_ROWS) for c in range(MAT_COLS)
-            if MAT_DATA[r][c] == 1
-        ]
+        #  zeros, and only a very small number of ones. The columns of this
+        #  matrix represent our message bits, and the rows represent our parity
+        #  check equations. Because the matrix is sparse, each parity equation
+        #  only checks a very small, specific handful of bits."
+        # Already started above; 1s highlight covers the visual
+        # "The columns represent message bits, and the rows represent parity
+        #  check equations."
+        # 12 words × 0.4 = 4.8 sec  — highlight 1s during this
+        # "Because the matrix is sparse, each parity equation only checks a
+        #  very small, specific handful of bits."
+        # 17 words × 0.4 = 6.8 sec  — triangle visual
         self.play(
             *[cell[0].animate.set_fill(YELLOW, opacity=0.6) for cell in one_cells],
             run_time=0.8
         )
-        self.wait(8.4 - 0.8)   # 7.6 sec
+        self.wait(8.4 - 0.8)   # 7.6 sec  (1s highlighted)
 
         # "The columns represent message bits, and the rows represent parity
-        #  check equations."
-        # 12 words × 0.4 = 4.8 sec
-        col_arrow = Arrow(start=[-2.8, -0.95, 0], end=[-2.8, -1.6, 0], color=BLUE_B, buff=0.05)
-        col_note  = Text("columns = message bits", font_size=19, color=BLUE_B).move_to([-2.8, -1.9, 0])
-        row_arrow = Arrow(start=[-5.75, 1.1, 0], end=[-6.35, 1.1, 0], color=GREEN_B, buff=0.05)
-        row_note  = Text("rows =\nchecks", font_size=17, color=GREEN_B, line_spacing=0.8)
-        row_note.move_to([-6.75, 1.1, 0])
+        #  check equations. Because each equation only depends on a few bits,
+        #  each error creates only a small number of inconsistencies, making
+        #  it much easier to isolate."
+        # 38 words × 0.4 = 15.2 sec (column/row arrows + triangle visual)
         self.play(GrowArrow(col_arrow), FadeIn(col_note), run_time=0.5)
         self.play(GrowArrow(row_arrow), FadeIn(row_note), run_time=0.5)
-        self.wait(4.8 - 0.5 - 0.5)   # 3.8 sec
+        self.wait(4.8 - 0.5 - 0.5)   # 3.8 sec  (columns+rows beat)
 
-        # "Because the matrix is sparse, each parity equation only checks a
-        #  very small, specific handful of bits."
-        # 17 words × 0.4 = 6.8 sec
-
-        # Right-side low-density triangle visual
+        # "Because the matrix is sparse..." — triangle visual covers remainder
         # 7 tiny bit labels
         TINY_BIT_X = [1.5 + i * 0.72 for i in range(7)]
         TINY_BIT_Y = 2.0
@@ -638,14 +651,13 @@ class LDPCSolution(Scene):
         self.play(FadeIn(tiny_bits), FadeIn(check_squares), run_time=0.6)
         self.play(FadeIn(tri_polys), run_time=0.6)
         self.play(FadeIn(density_label), run_time=0.4)
-        self.wait(6.8 - 0.6 - 0.6 - 0.4)   # 5.2 sec
+        self.wait(15.2 - (0.5 + 0.5 + 3.8) - 0.6 - 0.6 - 0.4)   # 9.3 sec
 
         self.play(
             FadeOut(VGroup(
                 secret_title, matrix_vgroup, mat_bracket_l, mat_bracket_r,
                 mat_label, col_arrow, col_note, row_arrow, row_note,
                 tiny_bits, check_squares, tri_polys, density_label,
-                *one_cells  # already inside matrix_vgroup but harmless to list
             )),
             run_time=0.8
         )
@@ -654,9 +666,12 @@ class LDPCSolution(Scene):
         # PART 3 — Build Tanner Graph
         # ═════════════════════════════════════════════════════════════════════
 
-        # "To prove why this is so powerful against Rowhammer, we can visualize
-        #  this matrix as a bipartite graph, called a Tanner Graph."
-        # 23 words × 0.4 = 9.2 sec
+        # "LDPC codes can correct multiple simultaneous errors because each
+        #  bit participates in many independent, sparse constraints, allowing
+        #  the decoder to accumulate consistent evidence about which bits are
+        #  wrong. To prove why this is so powerful against Rowhammer, we can
+        #  visualize this matrix as a bipartite graph, called a Tanner Graph."
+        # 62 words × 0.4 = 24.8 sec  (Tanner graph build covers this)
 
         tanner_title = Text("Tanner Graph", font_size=44, color=YELLOW, weight=BOLD)
         tanner_title.to_edge(UP, buff=0.4)
@@ -715,7 +730,7 @@ class LDPCSolution(Scene):
         self.play(FadeIn(var_ticks), FadeIn(var_labels), FadeIn(var_type_labels), run_time=1.0)
         self.play(FadeIn(check_nodes), FadeIn(check_node_labels), run_time=0.8)
         self.play(Create(edge_group, lag_ratio=0.05), run_time=1.5)
-        self.wait(9.2 - 0.6 - 1.0 - 0.8 - 1.5)   # 5.3 sec
+        self.wait(9.2 - 0.6 - 1.0 - 0.8 - 1.5)   # 5.3 sec  (first beat—Tanner title + nodes appear)
 
         # "The circles at the top are the bits of our data."
         # 11 words × 0.4 = 4.4 sec
@@ -726,19 +741,15 @@ class LDPCSolution(Scene):
         self.play(FadeIn(bit_note), GrowArrow(bit_arrow), run_time=0.6)
         self.wait(4.4 - 0.6)   # 3.8 sec
 
-        # "The squares at the bottom are our parity checks."
-        # 9 words × 0.4 = 3.6 sec
+        # "The squares at the bottom are our parity checks. The lines
+        #  connecting them are exactly where the ones were in our sparse matrix."
+        # 23 words × 0.4 = 9.2 sec
         chk_arrow = Arrow(start=[0, -2.55, 0], end=[0, CHK_Y - 0.3, 0],
                           color=WHITE, buff=0.05, stroke_width=2.0)
         chk_note  = Text("Check nodes (parity eqs.)", font_size=22, color=WHITE)
         chk_note.move_to([0, -2.9, 0])
         self.play(FadeIn(chk_note), GrowArrow(chk_arrow), run_time=0.6)
-        self.wait(3.6 - 0.6)   # 3.0 sec
-
-        # "The lines connecting them are exactly where the ones were in our
-        #  sparse matrix."
-        # 16 words × 0.4 = 6.4 sec
-        self.wait(6.4)
+        self.wait(9.2 - 0.6)   # 8.6 sec
 
         self.play(
             FadeOut(bit_note), FadeOut(bit_arrow),
@@ -750,9 +761,13 @@ class LDPCSolution(Scene):
         # PART 4 — Rowhammer attack: question marks + upward belief messages
         # ═════════════════════════════════════════════════════════════════════
 
-        # "When a Rowhammer attack flips multiple bits, the LDPC decoder doesn't
-        #  just crash like a Hamming code."
-        # 19 words × 0.4 = 7.6 sec
+        # "When a Rowhammer attack flips multiple bits, the LDPC decoder
+        #  doesn't just crash like a Hamming code. Instead, it uses an
+        #  algorithm called Iterative Belief Propagation. It's an iterative
+        #  inference process: each parity check provides a local constraint,
+        #  and the decoder repeatedly aggregates these constraints to estimate
+        #  the most likely value of each bit."
+        # 61 words × 0.4 = 24.4 sec
 
         ATTACK_IDX = [1, 2, 4]   # bits 1, 2, 4 get attacked
 
@@ -769,27 +784,21 @@ class LDPCSolution(Scene):
             FadeIn(q_marks),
             run_time=0.6
         )
-        self.wait(7.6 - 0.6)   # 7.0 sec
+        self.wait(7.6 - 0.6)   # 7.0 sec  (attack shown)
 
-        # "Instead, it uses an algorithm called Iterative Belief Propagation."
-        # 10 words × 0.4 = 4.0 sec
+        # "Instead, it uses Iterative Belief Propagation..."
         ibp_text = Text("Iterative Belief Propagation", font_size=30, color=YELLOW)
         ibp_text.move_to([0, -3.4, 0])
         self.play(FadeIn(ibp_text), run_time=0.5)
         self.wait(4.0 - 0.5)   # 3.5 sec
 
-        # "It's essentially a massive, high-speed game of telephone."
-        # 10 words × 0.4 = 4.0 sec
-        telephone_text = Text("A high-speed game of telephone", font_size=24, color=WHITE)
+        # "You can think of this like a network of voters..."
+        telephone_text = Text("A network of voters", font_size=24, color=WHITE)
         telephone_text.next_to(ibp_text, DOWN, buff=0.25)
         self.play(FadeIn(telephone_text), run_time=0.4)
-        self.wait(4.0 - 0.4)   # 3.6 sec
 
-        # "The check nodes look at the connected bits and say 'I think this
-        #  specific bit is wrong.' They send a message back up to the bits."
-        # 28 words × 0.4 = 11.2 sec
-
-        # Animate yellow dots travelling UP each edge (checks → variable nodes)
+        # "The check nodes look at bits and send messages upward."
+        # Belief dot animation — dots travel UP from checks to variable nodes
         def make_dot(start, end, color=YELLOW):
             dot = Dot(point=start, radius=0.09, color=color)
             return dot, MoveAlongPath(
@@ -816,7 +825,12 @@ class LDPCSolution(Scene):
         self.add(dot_group_up)
         self.play(*anims_up)
         self.remove(dot_group_up)
-        self.wait(11.2 - 0.9)   # 10.3 sec
+        # "Over multiple rounds, these local updates reinforce each other,
+        #  and the system gradually converges to a globally consistent solution.
+        #  Because each parity check only involves a small number of bits,
+        #  errors remain localized rather than contaminating the entire system."
+        # 40 words × 0.4 = 16.0 sec — remaining Part 4 time after IBP intro
+        self.wait(16.0 - 0.4 - 0.9)   # 14.7 sec
 
         self.play(FadeOut(ibp_text), FadeOut(telephone_text), run_time=0.4)
 
@@ -826,8 +840,9 @@ class LDPCSolution(Scene):
 
         # "The bits receive messages from all their connected checks, update
         #  their own probability of being a 1 or a 0, and send that updated
-        #  belief back down to the checks."
-        # 33 words × 0.4 = 13.2 sec
+        #  belief back down to the checks. They pass these probabilities back
+        #  and forth iteratively."
+        # 43 words × 0.4 = 17.2 sec
 
         # Edges touching attacked nodes for DOWN pass (var → check)
         attack_edges_down = [(v, k) for v, k in EDGES if v in ATTACK_IDX]
@@ -865,10 +880,11 @@ class LDPCSolution(Scene):
         self.play(*anims_u1)
         self.remove(grp_u1)
 
-        self.wait(13.2 - 0.9 - 0.9)   # 11.4 sec
+        self.wait(13.2 - 0.9 - 0.9)   # 11.4 sec  (pause after iteration 1 — long belief exchange)
 
-        # "They pass these probabilities back and forth iteratively."
-        # 8 words × 0.4 = 3.2 sec
+        # "They pass these probabilities back and forth iteratively. Because
+        #  the connections are sparse, the errors don't easily spread."
+        # ~19 words × 0.4 = 7.6 sec
 
         # Iteration 2
         grp_d2, anims_d2 = one_pass_down()
@@ -881,21 +897,24 @@ class LDPCSolution(Scene):
         self.play(*anims_u2)
         self.remove(grp_u2)
 
-        self.wait(3.2 - 0.9 - 0.9)   # 1.4 sec
+        self.wait(7.6 - 0.9 - 0.9)   # 5.8 sec  (pause after iteration 2)
 
         # "Because the connections are sparse, the errors don't easily spread
-        #  to other equations."
-        # 14 words × 0.4 = 5.6 sec
+        #  to other equations. Within just a few iterations, the network
+        #  reaches a mathematical consensus, isolating and correcting the
+        #  multi-bit Rowhammer errors."
+        # 36 words × 0.4 = 14.4 sec
         sparse_note = Text("Sparse connections = errors stay isolated",
                            font_size=24, color=GREEN_B)
         sparse_note.move_to([0, -3.4, 0])
         self.play(FadeIn(sparse_note), run_time=0.5)
-        self.wait(5.6 - 0.5)   # 5.1 sec
+        self.wait(5.6 - 0.5)   # 5.1 sec  (sparse note beat)
 
         # "Within just a few iterations, the network reaches a mathematical
-        #  consensus, isolating and correcting the multi-bit Rowhammer errors
-        #  perfectly."
-        # 22 words × 0.4 = 8.8 sec
+        #  consensus, isolating and correcting the multi-bit Rowhammer errors.
+        #  Of course, this process is not perfect. Designing LDPC codes is
+        #  a careful balance between sparsity, redundancy, and performance."
+        # 44 words × 0.4 = 17.6 sec
 
         # Iteration 3 (final) then correction
         grp_d3, anims_d3 = one_pass_down()
@@ -915,7 +934,7 @@ class LDPCSolution(Scene):
             for i in ATTACK_IDX
         ])
         self.play(FadeOut(q_marks), FadeIn(corrected_labels), run_time=0.6)
-        self.wait(8.8 - 0.9 - 0.9 - 0.6)   # 6.4 sec
+        self.wait(17.6 - 0.9 - 0.9 - 0.6)   # 15.2 sec
 
         # Fade everything out
         self.play(
@@ -930,10 +949,10 @@ class LDPCSolution(Scene):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scene 4 — RealWorld
-# Script 1:  59 words × 0.4 sec/word = 23.6 sec
-# Script 2:  79 words × 0.4 sec/word = 31.6 sec
-# Script 3:  72 words × 0.4 sec/word = 28.8 sec
-# Script 4:  78 words × 0.4 sec/word = 31.2 sec
+# Pedro Part 1 (DRAM latency):    ~85 words × 0.4 = 34.0 sec
+# Pedro Part 2 (SSD + industries): ~110 words × 0.4 = 44.0 sec
+# Pedro Part 3 (5G/Wi-Fi/Sat):    ~72 words  × 0.4 = 28.8 sec
+# Pedro Part 4 (future + refs):   ~92 words  × 0.4 = 36.8 sec
 # ─────────────────────────────────────────────────────────────────────────────
 class RealWorld(Scene):
     def construct(self):
@@ -942,36 +961,40 @@ class RealWorld(Scene):
         # PART 1 — The DRAM latency problem: clock visual
         # ═════════════════════════════════════════════════════════════════════
 
-        # "If LDPC codes are so powerful, why aren't they already the standard
-        #  in our computer's main memory, the DRAM?"
-        # 21 words × 0.4 = 8.4 sec
+        # "If LDPC codes are so powerful, why aren't they already in our
+        #  computer's DRAM? It comes down to speed and hardware complexity.
+        #  DRAM operates under extremely tight latency constraints, often on
+        #  the order of tens of nanoseconds."
+        # 40 words × 0.4 = 16.0 sec
         question = Text(
             "If LDPC is so powerful…\nwhy not use it in DRAM?",
             font_size=40, color=WHITE, line_spacing=1.3
         ).to_edge(UP, buff=0.6)
         self.play(Write(question), run_time=1.4)
-        self.wait(8.4 - 1.4)   # 7.0 sec
+        self.wait(8.4 - 1.4)   # 7.0 sec (first question)
 
-        # "It all comes down to speed."
-        # 7 words × 0.4 = 2.8 sec
+        # "It comes down to speed and hardware complexity."
+        # 8 words × 0.4 = 3.2 sec
         speed_text = Text("It comes down to speed.", font_size=34, color=YELLOW)
         speed_text.next_to(question, DOWN, buff=0.55)
         self.play(FadeIn(speed_text), run_time=0.5)
-        self.wait(2.8 - 0.5)   # 2.3 sec
+        self.wait(3.2 - 0.5)   # 2.7 sec
 
-        # "The iterative message passing we just visualized requires
-        #  computational overhead."
-        # 10 words × 0.4 = 4.0 sec
+        # "Hamming decoding can be done in essentially a single step using
+        #  simple logic. But LDPC decoding requires multiple rounds of message
+        #  passing, additional memory access, and more complex circuitry.
+        #  This increases both latency and energy consumption."
+        # 38 words × 0.4 = 15.2 sec  (latency eq + clock covers this)
         latency_eq = Text("Iterative Decoding  =  High Latency",
                           font_size=34, color=RED_B)
         latency_eq.move_to([0, 0.3, 0])
         self.play(FadeIn(latency_eq), run_time=0.6)
-        self.wait(4.0 - 0.6)   # 3.4 sec
+        self.wait(4.0 - 0.6)   # 3.4 sec  (equation settled)
 
-        # "In the past, this decoding latency was simply too slow for main
-        #  memory, which needs to be accessed in nanoseconds."
-        # 21 words × 0.4 = 8.4 sec
-
+        # "This increases both latency and energy consumption, making it
+        #  historically impractical for main memory."
+        # Clock spinning covers this window — 16.0 - (8.4 + 3.2 + 4.0) = 0.4 sec budget
+        # Total Part 1 = 34.0 sec: 8.4 + 3.2 + 4.0 + 15.2 (clock) + misc = ~34 sec
         # Clock face (circle + 12 tick lines + hour/minute hands that spin)
         clock_face   = Circle(radius=0.85, color=WHITE, stroke_width=2.5)
         clock_face.move_to([0, -1.9, 0])
@@ -1010,7 +1033,7 @@ class RealWorld(Scene):
                      about_point=clock_face.get_center(), run_time=3.5, rate_func=linear),
         )
         self.play(FadeIn(nano_label), run_time=0.4)
-        self.wait(8.4 - 0.5 - 3.5 - 0.4)   # 4.0 sec
+        self.wait(15.2 - 0.5 - 3.5 - 0.4)   # 10.8 sec  (clock + latency window)
 
         self.play(
             FadeOut(VGroup(
@@ -1025,9 +1048,11 @@ class RealWorld(Scene):
         # PART 2 — SSD health bar + micro Tanner graph overlay
         # ═════════════════════════════════════════════════════════════════════
 
-        # "However, outside of DRAM, LDPC is currently dominating almost every
-        #  other industry."
-        # 14 words × 0.4 = 5.6 sec
+        # "However, LDPC is currently dominating almost every other industry.
+        #  In 5G cellular networks, signals travel through noisy environments
+        #  with interference from many sources, often causing multiple
+        #  simultaneous errors."
+        # Part 2 total: ~110 words × 0.4 = 44.0 sec
         ssd_title = Text("SSDs: Flash Memory", font_size=42, color=YELLOW, weight=BOLD)
         ssd_title.to_edge(UP, buff=0.45)
         self.play(FadeIn(ssd_title), run_time=0.6)
@@ -1055,14 +1080,16 @@ class RealWorld(Scene):
 
         chip_group = VGroup(chip_body, chip_label, pins)
         self.play(FadeIn(chip_group, lag_ratio=0.05), run_time=0.9)
-        self.wait(5.6 - 0.6 - 0.9)   # 4.1 sec
+        self.wait(5.6 - 0.6 - 0.9)   # 4.1 sec  (industry intro)
 
-        # "Take the Solid-State Drive inside your computer right now."
-        # 10 words × 0.4 = 4.0 sec
-        self.wait(4.0)
+        # "Take the Solid-State Drive inside your computer right now.
+        #  Flash memory physically degrades over time."
+        # 14 words × 0.4 = 5.6 sec
 
-        # "Flash memory physically degrades over time."  6 words × 0.4 = 2.4 sec
-        # "The silicon oxide layers wear out, causing severe multi-bit errors."  11 words × 0.4 = 4.4 sec
+        self.wait(5.6)
+
+        # "The silicon oxide layers wear out, causing severe multi-bit errors."
+        # 10 words × 0.4 = 4.0 sec  (bar depleting covers this)
 
         # Health bar — starts full green, depletes to red
         BAR_W, BAR_H = 3.2, 0.38
@@ -1081,7 +1108,9 @@ class RealWorld(Scene):
 
         self.play(FadeIn(bar_bg), FadeIn(bar_fill), FadeIn(bar_label), run_time=0.5)
 
-        # Deplete bar slowly to ~20% (red zone)
+        # Deplete bar slowly to ~20% (red zone) while describing flash degradation
+        # "The silicon oxide layers wear out, causing severe multi-bit errors."
+        # 10 words × 0.4 = 4.0 sec  (depletion animation = 2.8 sec, rest waits)
         bar_depleted = Rectangle(
             width=BAR_W * 0.18, height=BAR_H,
             fill_opacity=0.85, fill_color=RED,
@@ -1092,11 +1121,16 @@ class RealWorld(Scene):
             Transform(bar_fill, bar_depleted),
             run_time=2.8
         )
-        self.wait(2.4 + 4.4 - 0.5 - 2.8)   # 3.5 sec
+        self.wait(4.0 - 0.5 - 2.8)   # 0.7 sec  (bar fully depleted)
 
-        # "Older drives used simpler codes, but modern SSDs survive because of
-        #  LDPC."
-        # 12 words × 0.4 = 4.8 sec
+        # "Older drives used simpler codes, but modern SSDs survive because
+        #  of LDPC. By using soft-decision decoding, LDPC extends the lifespan
+        #  of your drive by years, keeping your files from corruption.
+        #  In Wi-Fi, signals bounce off walls creating multipath interference.
+        #  In flash memory, storage cells degrade causing multiple nearby bits
+        #  to fail together. In all these cases, the error model is complex
+        #  and structured — exactly where LDPC excels."
+        # ~66 words × 0.4 = 26.4 sec  (Tanner overlay + bar recovery + industry bullets)
 
         # Overlay faint Tanner graph on the chip
         mini_var_x = [-0.7, -0.23, 0.23, 0.7]
@@ -1123,12 +1157,12 @@ class RealWorld(Scene):
         mini_tanner = VGroup(mini_edges, mini_var_nodes, mini_chk_nodes)
         self.play(FadeIn(mini_tanner, lag_ratio=0.05), run_time=0.6)
 
-        # Pulse the Tanner graph twice
+        # Pulse the Tanner graph twice while describing LDPC benefit
         for _ in range(2):
             self.play(mini_tanner.animate.set_opacity(1.0), run_time=0.3)
             self.play(mini_tanner.animate.set_opacity(0.45), run_time=0.3)
 
-        self.wait(4.8 - 0.6 - 2 * 0.6)   # 3.0 sec
+        self.wait(10.4 - 0.6 - 2 * 0.6)   # 8.6 sec  (industry bullets)
 
         # "By using soft-decision decoding—those probabilities we passed back
         #  and forth—LDPC extends the lifespan of your drive by years, keeping
@@ -1146,7 +1180,7 @@ class RealWorld(Scene):
         extend_label.next_to(bar_bg, RIGHT, buff=0.2)
         self.play(Transform(bar_fill, bar_stable), run_time=1.2)
         self.play(FadeIn(extend_label), run_time=0.4)
-        self.wait(10.4 - 1.2 - 0.4)   # 8.8 sec
+        self.wait(26.4 - (0.7 + 2.8 + 0.7) - (0.6 + 2 * 0.6 + 8.6) - 1.2 - 0.4)   # ~9.4 sec
 
         self.play(
             FadeOut(VGroup(
@@ -1253,6 +1287,9 @@ class RealWorld(Scene):
         noise_label = Text("⚡ noise + interference", font_size=22, color=RED)
         noise_label.to_edge(DOWN, buff=0.55)
 
+        # \"It is also the official error correction standard for 5G cellular
+        #  networks, Wi-Fi 6, and satellite broadcasting.\"
+        # 18 words × 0.4 = 7.2 sec  (devices appear one by one)\n
         # Bring all three devices in one by one
         self.play(Create(tower), FadeIn(tower_lbl), run_time=0.7)
         self.play(LaggedStart(*[Create(a) for a in tower_arcs], lag_ratio=0.25), run_time=0.6)
@@ -1262,21 +1299,21 @@ class RealWorld(Scene):
         self.play(LaggedStart(*[Create(s) for s in sat_signals], lag_ratio=0.2), run_time=0.5)
         self.wait(7.2 - 0.6 - 0.7 - 0.6 - 0.5 - 0.6 - 0.5 - 0.5)   # 3.2 sec
 
+        # \"In 5G cellular networks, signals travel through noisy environments.
+        #  In Wi-Fi, signals bounce off walls creating multipath interference.
+        #  In flash memory, storage cells degrade causing multiple nearby bits
+        #  to fail together. In all of these cases, the error model is complex
+        #  and structured — exactly where LDPC excels.\"
+        # 54 words × 0.4 = 21.6 sec  (noise label visible during this)
         self.play(FadeIn(noise_label), run_time=0.4)
-        self.wait(6.4 - 0.4)   # 6.0 sec
-
-        # "LDPC codes are what we call 'capacity-approaching'."
-        # 8 words × 0.4 = 3.2 sec
-        # "They allow us to transmit data at speeds incredibly close to the
-        #  absolute theoretical limit of the channel, known as the Shannon
-        #  Limit, without losing a single bit."
-        # 30 words × 0.4 = 12.0 sec
+        self.wait(21.6 - 0.4)   # 21.2 sec
 
         self.play(
             FadeOut(VGroup(
                 wireless_title, tower, tower_lbl, tower_arcs,
                 router, router_lbl, router_arcs,
-                satellite, sat_lbl, sat_signals
+                satellite, sat_lbl, sat_signals,
+                noise_label
             )),
             run_time=0.8
         )
@@ -1287,18 +1324,20 @@ class RealWorld(Scene):
 
         # ── 4a: Title writes in and immediately moves to top ─────────────────
 
-        # "Which brings us back to DRAM."
-        # 7 words × 0.4 = 2.8 sec
+        # "As we move into the AI era, servers are experiencing heavier
+        #  DRAM workloads and denser memory chips than ever before, making
+        #  them prime targets for Rowhammer."
+        # 30 words leading into server visual — Part 4 total ~92 words
         future_title = Text("The Future of DRAM Security",
                             font_size=40, color=YELLOW, weight=BOLD)
         future_title.to_edge(UP, buff=0.45)
         self.play(Write(future_title), run_time=1.2)
-        self.wait(2.8 - 1.2)   # 1.6 sec
+        self.wait(5.6 - 1.2)   # 4.4 sec  (future title settles)
 
         # ── 4b: AI server rack with load bars ────────────────────────────────
 
-        # "As we move into the AI era, servers are experiencing heavier
-        #  workloads and denser memory chips than ever before."
+        # "As we move into the AI era, servers experiencing heavier workloads."
+        # Server rack appears (1.0 sec) + bars fill (2.0 sec)
         # 20 words × 0.4 = 8.0 sec
 
         # Three server units stacked vertically
@@ -1372,8 +1411,8 @@ class RealWorld(Scene):
 
         # ── 4c: Zoom into chip → DRAM rows → Rowhammer ───────────────────────
 
-        # "This density makes them prime targets for Rowhammer attacks."
-        # 10 words × 0.4 = 4.0 sec
+        # "…making them prime targets for Rowhammer attacks."
+        # 8 words × 0.4 = 3.2 sec  (chip zoom covers this)
 
         # Fade out server rack, zoom into a chip representation
         self.play(
@@ -1422,7 +1461,7 @@ class RealWorld(Scene):
         dram_zoom_lbl = Text("DRAM Rows", font_size=20, color=GRAY)
         dram_zoom_lbl.to_edge(DOWN, buff=0.5)
         self.play(FadeIn(dram_zoom_lbl), run_time=0.3)
-        self.wait(4.0 - 0.5 - 0.6 - 1.0 - 0.3)   # 1.6 sec
+        self.wait(3.2 - 0.5 - 0.6 - 1.0 - 0.3)   # 0.8 sec  (chip zoomed in + DRAM rows visible)
 
         # Rowhammer attack: hammer row 2 red, flip cells in rows 1 and 3 yellow
         HAMMER_ROW = 2
@@ -1431,7 +1470,7 @@ class RealWorld(Scene):
         # "While it requires a slightly more complex hardware implementation,
         #  bringing the iterative mathematical power of LDPC codes into DRAM
         #  is no longer just a theoretical exercise."
-        # 28 words × 0.4 = 11.2 sec
+        # 28 words × 0.4 = 11.2 sec  (Rowhammer pulse + flip covers this)
 
         # Colour hammer row red + pulse 3×
         self.play(
@@ -1461,6 +1500,8 @@ class RealWorld(Scene):
         self.wait(11.2 - 0.5 - 3 * 0.36 - 0.5 - 0.3)   # 8.3 sec
 
         # ── 4d: Zoom back out → LDPC shield overlaid on DRAM ─────────────────
+
+        # LDPC shield + zoom-out covers the remaining ~21.6-sec block
 
         # "It is rapidly becoming a strict security necessity for the future
         #  of computing."
@@ -1527,7 +1568,7 @@ class RealWorld(Scene):
         protected_lbl = Text("Multi-bit errors corrected ✓", font_size=20, color=GREEN)
         protected_lbl.move_to([2.55, -2.2, 0])
         self.play(FadeIn(protected_lbl), run_time=0.4)
-        self.wait(5.2 - 0.6 - 0.7 - 0.5 - 2 * 0.5 - 0.2 - 0.4)   # 1.3 sec
+        self.wait(21.6 - (0.6 + 0.7 + 0.5 + 2 * 0.5 + 0.2 + 0.4) - 1.0)   # 16.1 sec (remaining future narration)
 
         self.play(
             FadeOut(VGroup(
@@ -1536,6 +1577,45 @@ class RealWorld(Scene):
             )),
             run_time=0.8
         )
+
+        # ── 4e-pre: Background & Prerequisites ───────────────────────────────
+
+        # ~85 words ÷ 200 wpm × 60 sec ≈ 25 sec display time
+        prereq_header = Text("Assumed Background & Prerequisites",
+                             font_size=26, color=YELLOW, weight=BOLD)
+        prereq_body = Text(
+            "This video is designed for a mathematically curious audience. We do\n"
+            "not assume any prior knowledge of DRAM architecture, Rowhammer\n"
+            "attacks, or Error Correcting Codes. However, to fully grasp the LDPC\n"
+            "solution, viewers should understand the basic idea of sending\n"
+            "information and the possibility of information being corrupted.",
+            font_size=18, color=WHITE
+        )
+        prereq_cta = Text(
+            "For more insight on how LDPC codes work, check out the video below:",
+            font_size=17, color=LIGHT_GRAY
+        )
+        prereq_title = Text(
+            "Error Correction for 5G Communication (LDPC codes) — Art of the Problem",
+            font_size=17, color=BLUE_B
+        )
+        prereq_url = Text(
+            "youtube.com/watch?v=RWUxtGh-guY",
+            font_size=16, color=BLUE_C
+        )
+
+        prereq_group = VGroup(prereq_header, prereq_body, prereq_cta,
+                              prereq_title, prereq_url)
+        prereq_group.arrange(DOWN, aligned_edge=LEFT, buff=0.38)
+        prereq_group.to_edge(LEFT, buff=0.6)
+
+        self.play(FadeIn(prereq_header), run_time=0.5)
+        self.play(FadeIn(prereq_body), run_time=0.8)
+        self.play(FadeIn(prereq_cta), FadeIn(prereq_title),
+                  FadeIn(prereq_url), run_time=0.6)
+        # ~85 words ÷ 200 wpm × 60 sec ≈ 25 sec total; subtract animation time
+        self.wait(25.0 - 0.5 - 0.8 - 0.6)   # 23.1 sec reading time
+        self.play(FadeOut(prereq_group), run_time=0.6)
 
         # ── 4e: References ────────────────────────────────────────────────────
 

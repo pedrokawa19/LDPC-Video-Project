@@ -1,0 +1,7 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/1584795214_856935385_223132457.mp4'
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/4072820271_3394500337_2398843173.mp4'
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/4072820271_2431788046_3086833988.mp4'
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/4072820271_4217992463_1880959842.mp4'
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/4072820271_2889831956_903520615.mp4'
+file 'file:/Users/pedro/Desktop/GT '22-'27 /Math/MATH4012/Video Project/media/videos/manim_matrix/480p15/partial_movie_files/HelloMatrix/4072820271_2844360058_2598887844.mp4'

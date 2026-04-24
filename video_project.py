@@ -438,11 +438,11 @@ class LDPCSolution(Scene):
         # Connections mirror the sparse 3×7 matrix shown in Part 2
         # ─────────────────────────────────────────────────────────────────────
         EDGES = [
-            (0, 0), (1, 0), (3, 0),          # check 0  → bits 0,1,3
-            (1, 1), (2, 1), (4, 1), (5, 1),  # check 1  → bits 1,2,4,5
-            (0, 2), (3, 2), (5, 2), (6, 2),  # check 2  → bits 0,3,5,6
+            (0, 0), (1, 0), (3, 0), (4, 0),  # check 0 (white) → bits 0,1,3,4
+            (0, 1), (2, 1), (3, 1), (5, 1),  # check 1 (red)   → bits 0,2,3,5
+            (1, 2), (2, 2), (3, 2), (6, 2),  # check 2 (blue)  → bits 1,2,3,6
         ]
-        EDGE_COLORS = [BLACK, RED, BLUE]      # one color per check node
+        EDGE_COLORS = [GREEN, RED, BLUE]     # one color per check node
 
         BIT_VALUES  = [1, 0, 1, 0, 1, 0, 1]
 
@@ -536,13 +536,15 @@ class LDPCSolution(Scene):
         self.wait(3.2 - 0.6)   # 2.6 sec (first sentence beat)
 
         # Sparse 3×7 matrix data — matches EDGES topology above
-        # Row 0: bits 0,1,3 → cols 0,1,3 = 1; rest = 0
-        # Row 1: bits 1,2,4,5 → cols 1,2,4,5 = 1; rest = 0
-        # Row 2: bits 0,3,5,6 → cols 0,3,5,6 = 1; rest = 0
+        # Row 0 (white): bits 0,1,3,4 → cols 0,1,3,4 = 1; rest = 0
+        # Row 1 (red):   bits 0,2,3,5 → cols 0,2,3,5 = 1; rest = 0
+        # Row 2 (blue):  bits 1,2,3,6 → cols 1,2,3,6 = 1; rest = 0
+        # Parity checks: BIT_VALUES=[1,0,1,0,1,0,1]
+        #   row0: 1⊕0⊕0⊕1 = 0 ✓   row1: 1⊕1⊕0⊕0 = 0 ✓   row2: 0⊕1⊕0⊕1 = 0 ✓
         MAT_DATA = [
-            [1, 1, 0, 1, 0, 0, 0],
-            [0, 1, 1, 0, 1, 1, 0],
-            [1, 0, 0, 1, 0, 1, 1],
+            [1, 1, 0, 1, 1, 0, 0],
+            [1, 0, 1, 1, 0, 1, 0],
+            [0, 1, 1, 1, 0, 0, 1],
         ]
 
         CELL_S = 0.52
@@ -570,6 +572,9 @@ class LDPCSolution(Scene):
                 row.append(cell)
                 matrix_vgroup.add(cell)
             matrix_cells.append(row)
+        one_cells = [matrix_cells[r][c]
+                     for r in range(MAT_ROWS) for c in range(MAT_COLS)
+                     if MAT_DATA[r][c] == 1]
 
         mat_bracket_l = Text("[", font_size=88, color=WHITE).move_to([-5.35, 1.1, 0])
         mat_bracket_r = Text("]", font_size=88, color=WHITE).move_to([-0.25, 1.1, 0])
@@ -609,8 +614,21 @@ class LDPCSolution(Scene):
         #  each error creates only a small number of inconsistencies, making
         #  it much easier to isolate."
         # 38 words × 0.4 = 15.2 sec (column/row arrows + triangle visual)
+
+        # Matrix spans x: -5.06 → -1.06, y: 0.18 → 1.86  (CELL_STEP=0.58)
+        col_arrow = Arrow(
+            start=[-3.06, 2.55, 0], end=[-3.06, 2.0, 0],
+            color=BLUE_B, stroke_width=2.5,
+            max_tip_length_to_length_ratio=0.25
+        )
+        col_note = Text("columns = message bits", font_size=18, color=BLUE_B)
+        col_note.move_to([-3.06, 2.85, 0])
+
+        row_note = Text("rows = parity checks", font_size=18, color=ORANGE)
+        row_note.next_to(col_note, DOWN, buff=0.25)
+
         self.play(GrowArrow(col_arrow), FadeIn(col_note), run_time=0.5)
-        self.play(GrowArrow(row_arrow), FadeIn(row_note), run_time=0.5)
+        self.play(FadeIn(row_note), run_time=0.5)
         self.wait(4.8 - 0.5 - 0.5)   # 3.8 sec  (columns+rows beat)
 
         # "Because the matrix is sparse..." — triangle visual covers remainder
@@ -656,7 +674,7 @@ class LDPCSolution(Scene):
         self.play(
             FadeOut(VGroup(
                 secret_title, matrix_vgroup, mat_bracket_l, mat_bracket_r,
-                mat_label, col_arrow, col_note, row_arrow, row_note,
+                mat_label, col_arrow, col_note, row_note,
                 tiny_bits, check_squares, tri_polys, density_label,
             )),
             run_time=0.8
@@ -695,7 +713,7 @@ class LDPCSolution(Scene):
         ])
 
         var_type_labels = VGroup(*[
-            Text("m" if i < 4 else "p", font_size=14, color=YELLOW)
+            Text("m" if i < 4 else "p", font_size=14, color=GRAY)
             .move_to([VAR_X[i], VAR_Y - 0.35, 0])
             for i in range(7)
         ])
@@ -734,42 +752,30 @@ class LDPCSolution(Scene):
 
         # "The circles at the top are the bits of our data."
         # 11 words × 0.4 = 4.4 sec
-        bit_arrow = Arrow(start=[0, 2.55, 0], end=[0, VAR_Y + 0.7, 0],
-                          color=WHITE, buff=0.05, stroke_width=2.0)
         bit_note  = Text("Variable nodes (data bits)", font_size=22, color=WHITE)
         bit_note.move_to([0, 2.9, 0])
-        self.play(FadeIn(bit_note), GrowArrow(bit_arrow), run_time=0.6)
+        self.play(FadeIn(bit_note), run_time=0.6)
         self.wait(4.4 - 0.6)   # 3.8 sec
 
         # "The squares at the bottom are our parity checks. The lines
         #  connecting them are exactly where the ones were in our sparse matrix."
         # 23 words × 0.4 = 9.2 sec
-        chk_arrow = Arrow(start=[0, -2.55, 0], end=[0, CHK_Y - 0.3, 0],
-                          color=WHITE, buff=0.05, stroke_width=2.0)
         chk_note  = Text("Check nodes (parity eqs.)", font_size=22, color=WHITE)
         chk_note.move_to([0, -2.9, 0])
-        self.play(FadeIn(chk_note), GrowArrow(chk_arrow), run_time=0.6)
+        self.play(FadeIn(chk_note), run_time=0.6)
         self.wait(9.2 - 0.6)   # 8.6 sec
 
         self.play(
-            FadeOut(bit_note), FadeOut(bit_arrow),
-            FadeOut(chk_note), FadeOut(chk_arrow),
+            FadeOut(bit_note), FadeOut(chk_note),
             run_time=0.5
         )
 
         # ═════════════════════════════════════════════════════════════════════
-        # PART 4 — Rowhammer attack: question marks + upward belief messages
+        # PART 4 — Rowhammer attack + IBP introduction
+        # ~73 words × 0.4 = 29.2 sec
         # ═════════════════════════════════════════════════════════════════════
 
-        # "When a Rowhammer attack flips multiple bits, the LDPC decoder
-        #  doesn't just crash like a Hamming code. Instead, it uses an
-        #  algorithm called Iterative Belief Propagation. It's an iterative
-        #  inference process: each parity check provides a local constraint,
-        #  and the decoder repeatedly aggregates these constraints to estimate
-        #  the most likely value of each bit."
-        # 61 words × 0.4 = 24.4 sec
-
-        ATTACK_IDX = [1, 2, 4]   # bits 1, 2, 4 get attacked
+        ATTACK_IDX = [1, 2, 4]   # bits 1, 2, 4 get erased
 
         q_marks = VGroup(*[
             Text("?", font_size=32, color=RED, weight=BOLD)
@@ -777,174 +783,159 @@ class LDPCSolution(Scene):
             for i in ATTACK_IDX
         ])
 
-        # Replace attacked bit labels with red "?"
         attacked_labels = VGroup(*[var_labels[i] for i in ATTACK_IDX])
-        self.play(
-            FadeOut(attacked_labels),
-            FadeIn(q_marks),
-            run_time=0.6
-        )
-        self.wait(7.6 - 0.6)   # 7.0 sec  (attack shown)
 
-        # "Instead, it uses Iterative Belief Propagation..."
-        ibp_text = Text("Iterative Belief Propagation", font_size=30, color=YELLOW)
+        # "When a Rowhammer attack corrupts our memory, it might erase multiple
+        #  bits at once. Let's simulate this by turning three bits into unknown
+        #  question marks."  (~27 words = 10.8 sec)
+        self.play(FadeOut(attacked_labels), FadeIn(q_marks), run_time=0.6)
+        self.wait(10.8 - 0.6)   # 10.2 sec
+
+        # "The LDPC decoder uses an algorithm called Iterative Belief
+        #  Propagation to solve this puzzle. Each check node represents a
+        #  mathematical equation where all connected bits must sum to an even
+        #  number. It looks at its connections and says, 'Based on my equation,
+        #  what is missing?'"  (~46 words = 18.4 sec)
+        ibp_text = Text("Iterative Belief Propagation", font_size=28, color=YELLOW)
         ibp_text.move_to([0, -3.4, 0])
-        self.play(FadeIn(ibp_text), run_time=0.5)
-        self.wait(4.0 - 0.5)   # 3.5 sec
+        self.play(FadeOut(tanner_title), FadeIn(ibp_text), run_time=0.5)
+        self.wait(18.4 - 0.5)   # 17.9 sec
 
-        # "You can think of this like a network of voters..."
-        telephone_text = Text("A network of voters", font_size=24, color=WHITE)
-        telephone_text.next_to(ibp_text, DOWN, buff=0.25)
-        self.play(FadeIn(telephone_text), run_time=0.4)
-
-        # "The check nodes look at bits and send messages upward."
-        # Belief dot animation — dots travel UP from checks to variable nodes
-        def make_dot(start, end, color=YELLOW):
-            dot = Dot(point=start, radius=0.09, color=color)
-            return dot, MoveAlongPath(
-                dot,
-                Line(start, end),
-                run_time=0.9,
-                rate_func=linear
-            )
-
-        # Only edges touching attacked variable nodes
-        attack_edges_up = [
-            (v, k) for v, k in EDGES if v in ATTACK_IDX
-        ]
-        dots_up = []
-        anims_up = []
-        for v, k in attack_edges_up:
-            start = np.array([CHK_X[k], CHK_Y + 0.25, 0])
-            end   = np.array([VAR_X[v], VAR_Y,         0])
-            dot, anim = make_dot(start, end, color=YELLOW)
-            dots_up.append(dot)
-            anims_up.append(anim)
-
-        dot_group_up = VGroup(*dots_up)
-        self.add(dot_group_up)
-        self.play(*anims_up)
-        self.remove(dot_group_up)
-        # "Over multiple rounds, these local updates reinforce each other,
-        #  and the system gradually converges to a globally consistent solution.
-        #  Because each parity check only involves a small number of bits,
-        #  errors remain localized rather than contaminating the entire system."
-        # 40 words × 0.4 = 16.0 sec — remaining Part 4 time after IBP intro
-        self.wait(16.0 - 0.4 - 0.9)   # 14.7 sec
-
-        self.play(FadeOut(ibp_text), FadeOut(telephone_text), run_time=0.4)
+        self.play(FadeOut(ibp_text), run_time=0.4)
 
         # ═════════════════════════════════════════════════════════════════════
-        # PART 5 — Belief propagation iterations → correction
+        # PART 5 — Three-step IBP erasure solve (XOR equations)
         # ═════════════════════════════════════════════════════════════════════
 
-        # "The bits receive messages from all their connected checks, update
-        #  their own probability of being a 1 or a 0, and send that updated
-        #  belief back down to the checks. They pass these probabilities back
-        #  and forth iteratively."
-        # 43 words × 0.4 = 17.2 sec
+        # Helper: edges belonging to a given check index
+        # EDGES order: indices 0-3 = check 0, 4-7 = check 1, 8-11 = check 2
+        def check_edge_group(k):
+            return VGroup(*[
+                edge_lines[i] for i, (_, ki) in enumerate(EDGES) if ki == k
+            ])
 
-        # Edges touching attacked nodes for DOWN pass (var → check)
-        attack_edges_down = [(v, k) for v, k in EDGES if v in ATTACK_IDX]
+        # ── Round 1: RED check node (c1) solves bit 2 → 1 ──────────────────
+        # ~57 words × 0.4 = 22.8 sec
+        # check 1 connects to bits 0(=1), 2(=?), 3(=0), 5(=0) → 1⊕?⊕0⊕0=0
 
-        def one_pass_up():
-            dots, anims = [], []
-            for v, k in attack_edges_up:
-                start = np.array([CHK_X[k], CHK_Y + 0.25, 0])
-                end   = np.array([VAR_X[v], VAR_Y,         0])
-                dot, anim = make_dot(start, end, YELLOW)
-                dots.append(dot)
-                anims.append(anim)
-            grp = VGroup(*dots)
-            return grp, anims
+        # "The decoder looks for a check node with only one unknown. The white
+        #  and blue nodes have too many missing pieces. But look at the red
+        #  node. It connects to three known bits and only one unknown."
+        self.play(check_nodes[1].animate.set_stroke(RED, 4.5), run_time=0.5)
+        chk1_eg = check_edge_group(1)
+        self.play(chk1_eg.animate.set_stroke(width=4.0), run_time=0.3)
+        self.play(chk1_eg.animate.set_stroke(width=1.8), run_time=0.3)
+        self.wait(8.0 - 0.5 - 0.6)   # 6.9 sec  (narration before equation)
 
-        def one_pass_down():
-            dots, anims = [], []
-            for v, k in attack_edges_down:
-                start = np.array([VAR_X[v], VAR_Y,         0])
-                end   = np.array([CHK_X[k], CHK_Y + 0.25, 0])
-                dot, anim = make_dot(start, end, YELLOW)
-                dots.append(dot)
-                anims.append(anim)
-            grp = VGroup(*dots)
-            return grp, anims
+        # "Since 1 plus 0 plus 0 is 1, the missing bit must be a 1..."
+        eq1 = MathTex(r"1", r"\oplus", r"?", r"\oplus", r"0",
+                      r"\oplus", r"0", r"=", r"0", font_size=48)
+        eq1[2].set_color(RED)
+        eq1.to_edge(UP, buff=0.55)
+        self.play(FadeIn(eq1), run_time=0.5)
+        self.wait(4.4 - 0.5)   # 3.9 sec
 
-        # Iteration 1: down then up
-        grp_d1, anims_d1 = one_pass_down()
-        self.add(grp_d1)
-        self.play(*anims_d1)
-        self.remove(grp_d1)
+        # Resolve: ? → GREEN 1
+        eq1_solved = MathTex(r"1", r"\oplus", r"1", r"\oplus", r"0",
+                             r"\oplus", r"0", r"=", r"0", font_size=48)
+        eq1_solved[2].set_color(GREEN)
+        eq1_solved.to_edge(UP, buff=0.55)
+        self.play(Transform(eq1, eq1_solved), run_time=0.6)
 
-        grp_u1, anims_u1 = one_pass_up()
-        self.add(grp_u1)
-        self.play(*anims_u1)
-        self.remove(grp_u1)
+        # Replace bit-2 "?" on the graph with GREEN "1"
+        solved2 = Text("1", font_size=28, color=GREEN)
+        solved2.move_to([VAR_X[2], VAR_Y + 0.52, 0])
+        self.play(FadeOut(q_marks[1]), FadeIn(solved2), run_time=0.5)
+        self.play(FadeOut(eq1), run_time=0.4)
+        self.wait(22.8 - 8.0 - 4.4 - 0.6 - 0.5 - 0.4)   # ~8.9 sec
 
-        self.wait(13.2 - 0.9 - 0.9)   # 11.4 sec  (pause after iteration 1 — long belief exchange)
+        # ── Round 2: BLUE check node (c2) solves bit 1 → 0 ─────────────────
+        # ~24 words × 0.4 = 9.6 sec
+        # check 2 connects to bits 1(=?), 2(=1 solved), 3(=0), 6(=1)
+        # equation: ?⊕1⊕0⊕1=0 → ?=0
 
-        # "They pass these probabilities back and forth iteratively. Because
-        #  the connections are sparse, the errors don't easily spread."
-        # ~19 words × 0.4 = 7.6 sec
+        # "With that bit solved, the blue node now has enough information..."
+        self.play(check_nodes[2].animate.set_stroke(BLUE, 4.5), run_time=0.5)
+        chk2_eg = check_edge_group(2)
+        self.play(chk2_eg.animate.set_stroke(width=4.0), run_time=0.3)
+        self.play(chk2_eg.animate.set_stroke(width=1.8), run_time=0.3)
 
-        # Iteration 2
-        grp_d2, anims_d2 = one_pass_down()
-        self.add(grp_d2)
-        self.play(*anims_d2)
-        self.remove(grp_d2)
+        eq2 = MathTex(r"?", r"\oplus", r"1", r"\oplus", r"0",
+                      r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq2[0].set_color(RED)
+        eq2.to_edge(UP, buff=0.55)
+        self.play(FadeIn(eq2), run_time=0.5)
+        self.wait(2.4 - 0.5)   # 1.9 sec
 
-        grp_u2, anims_u2 = one_pass_up()
-        self.add(grp_u2)
-        self.play(*anims_u2)
-        self.remove(grp_u2)
+        eq2_solved = MathTex(r"0", r"\oplus", r"1", r"\oplus", r"0",
+                             r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq2_solved[0].set_color(GREEN)
+        eq2_solved.to_edge(UP, buff=0.55)
+        self.play(Transform(eq2, eq2_solved), run_time=0.6)
 
-        self.wait(7.6 - 0.9 - 0.9)   # 5.8 sec  (pause after iteration 2)
+        solved1 = Text("0", font_size=28, color=GREEN)
+        solved1.move_to([VAR_X[1], VAR_Y + 0.52, 0])
+        self.play(FadeOut(q_marks[0]), FadeIn(solved1), run_time=0.5)
+        self.play(FadeOut(eq2), run_time=0.4)
+        self.wait(9.6 - 0.5 - 0.6 - 0.5 - 0.6 - 0.5 - 0.4)   # ~6.5 sec
 
-        # "Because the connections are sparse, the errors don't easily spread
-        #  to other equations. Within just a few iterations, the network
-        #  reaches a mathematical consensus, isolating and correcting the
-        #  multi-bit Rowhammer errors."
-        # 36 words × 0.4 = 14.4 sec
-        sparse_note = Text("Sparse connections = errors stay isolated",
-                           font_size=24, color=GREEN_B)
-        sparse_note.move_to([0, -3.4, 0])
-        self.play(FadeIn(sparse_note), run_time=0.5)
-        self.wait(5.6 - 0.5)   # 5.1 sec  (sparse note beat)
+        # ── Round 3: WHITE check node (c0) solves bit 4 → 1 ─────────────────
+        # ~17 words × 0.4 = 6.8 sec
+        # check 0 connects to bits 0(=1), 1(=0 solved), 3(=0), 4(=?)
+        # equation: 1⊕0⊕0⊕?=0 → ?=1
 
-        # "Within just a few iterations, the network reaches a mathematical
-        #  consensus, isolating and correcting the multi-bit Rowhammer errors.
-        #  Of course, this process is not perfect. Designing LDPC codes is
-        #  a careful balance between sparsity, redundancy, and performance."
-        # 44 words × 0.4 = 17.6 sec
+        # "Finally, this cascades to the white node..."
+        self.play(check_nodes[0].animate.set_stroke(WHITE, 4.5), run_time=0.5)
+        chk0_eg = check_edge_group(0)
+        self.play(chk0_eg.animate.set_stroke(width=4.0), run_time=0.3)
+        self.play(chk0_eg.animate.set_stroke(width=1.8), run_time=0.3)
 
-        # Iteration 3 (final) then correction
-        grp_d3, anims_d3 = one_pass_down()
-        self.add(grp_d3)
-        self.play(*anims_d3)
-        self.remove(grp_d3)
+        eq3 = MathTex(r"1", r"\oplus", r"0", r"\oplus", r"0",
+                      r"\oplus", r"?", r"=", r"0", font_size=48)
+        eq3[6].set_color(RED)
+        eq3.to_edge(UP, buff=0.55)
+        self.play(FadeIn(eq3), run_time=0.5)
+        self.wait(1.6 - 0.5)   # 1.1 sec
 
-        grp_u3, anims_u3 = one_pass_up()
-        self.add(grp_u3)
-        self.play(*anims_u3)
-        self.remove(grp_u3)
+        eq3_solved = MathTex(r"1", r"\oplus", r"0", r"\oplus", r"0",
+                             r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq3_solved[6].set_color(GREEN)
+        eq3_solved.to_edge(UP, buff=0.55)
+        self.play(Transform(eq3, eq3_solved), run_time=0.6)
 
-        # Replace "?" marks with corrected bit values in GREEN
-        corrected_labels = VGroup(*[
-            Text(str(BIT_VALUES[i]), font_size=28, color=GREEN)
-            .move_to([VAR_X[i], VAR_Y + 0.52, 0])
-            for i in ATTACK_IDX
-        ])
-        self.play(FadeOut(q_marks), FadeIn(corrected_labels), run_time=0.6)
-        self.wait(17.6 - 0.9 - 0.9 - 0.6)   # 15.2 sec
+        solved4 = Text("1", font_size=28, color=GREEN)
+        solved4.move_to([VAR_X[4], VAR_Y + 0.52, 0])
+        self.play(FadeOut(q_marks[2]), FadeIn(solved4), run_time=0.5)
+        self.play(FadeOut(eq3), run_time=0.4)
+        self.wait(6.8 - 0.5 - 0.6 - 0.5 - 0.6 - 0.5 - 0.4)   # ~3.7 sec
+
+        # ── Conclusion ───────────────────────────────────────────────────────
+        # ~64 words × 0.4 = 25.6 sec
+
+        corrected_text = Text("All Errors Corrected!", font_size=40,
+                              color=GREEN, weight=BOLD)
+        corrected_text.move_to([0, -3.0, 0])
+        self.play(FadeIn(corrected_text), run_time=0.6)
+        # "Within just a few iterations...Rowhammer errors."  ~17 words = 6.8 sec
+        self.wait(8.8 - 0.6)   # 8.2 sec
+
+        self.play(FadeOut(corrected_text), run_time=0.4)
+
+        # "Of course...decoding performance."  ~47 words = 18.8 sec
+        self.wait(25.6 - 8.8 - 0.4 - 0.5)   # ~15.9 sec
 
         # Fade everything out
         self.play(
             FadeOut(VGroup(
-                tanner_title, var_ticks, var_labels, var_type_labels,
+                var_ticks, var_labels, var_type_labels,
                 check_nodes, check_node_labels, edge_group,
-                corrected_labels, sparse_note
+                solved1, solved2, solved4
             )),
             run_time=1.0
         )
+
+
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1211,8 +1202,6 @@ class RealWorld(Scene):
         tower_cross    = Line([t_x - 0.4,  0.1, 0],  [t_x + 0.4, 0.1, 0], color=WHITE, stroke_width=2.0)
         tower = VGroup(tower_mast, tower_base_l, tower_base_r,
                        tower_sup_l, tower_sup_r, tower_cross)
-        tower_lbl = Text("5G", font_size=20, color=BLUE_B, weight=BOLD)
-        tower_lbl.next_to(tower_cross, UP, buff=0.15)
 
         arc_center_t = np.array([t_x, 0.5, 0])
         tower_arcs = VGroup()
@@ -1235,8 +1224,6 @@ class RealWorld(Scene):
             Line([r_x + 0.32, -1.39, 0], [r_x + 0.38, -0.72, 0], color=WHITE, stroke_width=2.0),
         )
         router_base = Line([r_x - 0.2, -1.81, 0], [r_x + 0.2, -1.81, 0], color=WHITE, stroke_width=1.5)
-        router_lbl = Text("Wi-Fi 6", font_size=20, color=YELLOW)
-        router_lbl.next_to(router_body, DOWN, buff=0.22)
         router = VGroup(router_body, router_ant, router_base)
 
         arc_center_r = np.array([r_x, -0.65, 0])
@@ -1268,8 +1255,6 @@ class RealWorld(Scene):
         dish.move_to(sat_body.get_bottom() + DOWN * 0.22)
         dish_stem = Line(sat_body.get_bottom(), dish.get_top(), color=WHITE, stroke_width=1.5)
         satellite = VGroup(sat_body, panel_l, panel_r, dish, dish_stem)
-        sat_lbl = Text("Satellite", font_size=20, color=GREEN_B)
-        sat_lbl.next_to(satellite, DOWN, buff=0.55)
 
         # Downlink signal lines from satellite
         sat_signals = VGroup(*[
@@ -1291,11 +1276,11 @@ class RealWorld(Scene):
         #  networks, Wi-Fi 6, and satellite broadcasting.\"
         # 18 words × 0.4 = 7.2 sec  (devices appear one by one)\n
         # Bring all three devices in one by one
-        self.play(Create(tower), FadeIn(tower_lbl), run_time=0.7)
+        self.play(Create(tower), run_time=0.7)
         self.play(LaggedStart(*[Create(a) for a in tower_arcs], lag_ratio=0.25), run_time=0.6)
-        self.play(FadeIn(router), FadeIn(router_lbl), run_time=0.5)
+        self.play(FadeIn(router), run_time=0.5)
         self.play(LaggedStart(*[Create(a) for a in router_arcs], lag_ratio=0.25), run_time=0.6)
-        self.play(FadeIn(satellite), FadeIn(sat_lbl), run_time=0.5)
+        self.play(FadeIn(satellite), run_time=0.5)
         self.play(LaggedStart(*[Create(s) for s in sat_signals], lag_ratio=0.2), run_time=0.5)
         self.wait(7.2 - 0.6 - 0.7 - 0.6 - 0.5 - 0.6 - 0.5 - 0.5)   # 3.2 sec
 
@@ -1310,9 +1295,9 @@ class RealWorld(Scene):
 
         self.play(
             FadeOut(VGroup(
-                wireless_title, tower, tower_lbl, tower_arcs,
-                router, router_lbl, router_arcs,
-                satellite, sat_lbl, sat_signals,
+                wireless_title, tower, tower_arcs,
+                router, router_arcs,
+                satellite, sat_signals,
                 noise_label
             )),
             run_time=0.8
@@ -1589,7 +1574,7 @@ class RealWorld(Scene):
             "attacks, or Error Correcting Codes. However, to fully grasp the LDPC\n"
             "solution, viewers should understand the basic idea of sending\n"
             "information and the possibility of information being corrupted.",
-            font_size=18, color=WHITE
+            font_size=20, color=WHITE
         )
         prereq_cta = Text(
             "For more insight on how LDPC codes work, check out the video below:",

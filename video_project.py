@@ -2,48 +2,188 @@ from manim import *
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Scene 1 — RowhammerIntro
-# Jongwook voiceover Part A (title+binary): ~78 words × 0.4 = 31.2 sec
-# Jongwook voiceover Part B (DRAM grid):  ~111 words × 0.4 = 44.4 sec
+# Scene 1 — RowhammerIntro is split into two classes so Part 1 can be
+# rendered once and never re-rendered while iterating on the DRAM portion.
+# Final concat: rendered/RowhammerIntroPart1.mp4 + rendered/RowhammerIntroPart2.mp4
+# Edited timeline note: Part 2 now ends at 2:53 (173 sec).
+# Target combined duration was originally 2:48 (168 sec) at ~82 wpm pacing.
 # ─────────────────────────────────────────────────────────────────────────────
-class RowhammerIntro(Scene):
+class RowhammerIntroPart1(Scene):
+    """Title → Wi-Fi/Server → Coding Theory demo → Rowhammer reveal →
+    Problem Statement.  Ends at ~42 sec.  Frozen — do not edit unless
+    you intend to re-render Part 1."""
     def construct(self):
 
         # ═════════════════════════════════════════════════════════════════════
-        # PART 1 — Title Card + Binary Stream
+        # PART 1 — Title → Wi-Fi/Server data flow → Coding Theory demo →
+        # Rowhammer reveal (~25 sec) → Problem Statement (~42 sec)
         # ═════════════════════════════════════════════════════════════════════
 
-        # "We live in a world entirely dependent on digital data."
-        # 10 words × 0.4 = 4.0 sec
-        # (title visible through first sentence)
-        title    = Text("Low Density Parity Check Codes", font_size=64, weight=BOLD)
-        subtitle = Text("& their Applications", font_size=38, color=YELLOW)
-        subtitle.next_to(title, DOWN, buff=0.4)
+        title    = Text("Low Density Parity Check Codes", font_size=58, weight=BOLD)
+        title.to_edge(UP, buff=0.7)
+        subtitle = Text("& their Applications", font_size=32, color=YELLOW)
+        subtitle.next_to(title, DOWN, buff=0.3)
         title_group = VGroup(title, subtitle)
 
-        self.play(Write(title), run_time=1)
-        self.play(FadeIn(subtitle), run_time=0.5)
-        self.wait(4.0 - 1.5 - 0.8)   # 1.7 sec remaining
+        # ── Sentence 1 (~3.5 sec): "We live in a world entirely dependent on
+        #    digital data." Title writes in.
+        self.play(Write(title), run_time=1.2)
+        self.play(FadeIn(subtitle, shift=UP * 0.2), run_time=0.6)
+        self.wait(3.5 - 1.2 - 0.6)   # 1.7 sec
 
-        # "But whether that data is flying through the air as a Wi-Fi signal
-        #  or sitting quietly in a server, it is physically vulnerable to noise."
-        # 25 words × 0.4 = 10.0 sec
-        self.wait(10.0)
+        # ── Sentence 2 (~8.5 sec): "But whether that data is flying through
+        #    the air as a Wi-Fi signal or sitting quietly in a server, it is
+        #    physically vulnerable to noise."
+        # Visual: Wi-Fi tower (left) ⇄ Server rack (right) with bits flowing,
+        # plus a noise zap in the middle.
 
-        # "This is where coding theory comes in. Coding theory is the
-        #  mathematical study of how to add redundancy to data so that we can
-        #  detect and correct errors introduced by noise."
-        # 33 words × 0.4 = 13.2 sec
-        self.wait(13.2)
+        # Wi-Fi tower
+        wt_x, wt_y = -4.5, -1.0
+        wifi_mast    = Line([wt_x, wt_y - 0.9, 0], [wt_x, wt_y + 0.5, 0], color=BLUE_B, stroke_width=2.5)
+        wifi_base_l  = Line([wt_x - 0.35, wt_y - 0.9, 0], [wt_x, wt_y - 0.9, 0], color=BLUE_B, stroke_width=2)
+        wifi_base_r  = Line([wt_x + 0.35, wt_y - 0.9, 0], [wt_x, wt_y - 0.9, 0], color=BLUE_B, stroke_width=2)
+        wifi_cross   = Line([wt_x - 0.25, wt_y + 0.1, 0], [wt_x + 0.25, wt_y + 0.1, 0], color=BLUE_B, stroke_width=2)
+        wifi_arcs = VGroup(*[
+            Arc(radius=r, angle=PI * 0.7, start_angle=PI * 0.65,
+                color=BLUE_B, stroke_width=2.0, stroke_opacity=op)
+            .move_arc_center_to([wt_x, wt_y + 0.5, 0])
+            for r, op in [(0.35, 0.95), (0.6, 0.7), (0.9, 0.45)]
+        ])
+        wifi_lbl = Text("Wi-Fi", font_size=18, color=BLUE_B).move_to([wt_x, wt_y - 1.25, 0])
+        wifi = VGroup(wifi_mast, wifi_base_l, wifi_base_r, wifi_cross, wifi_arcs, wifi_lbl)
 
-        # "Today, we focus on a specific failure mode inside modern computers
-        #  called Rowhammer."
-        # 14 words × 0.4 = 5.6 sec  (Rowhammer label covers this)
+        # Server rack
+        sv_x, sv_y = 4.5, -1.0
+        server_body = Rectangle(width=1.0, height=1.6, fill_opacity=0.25,
+                                fill_color=GREEN_E, stroke_color=GREEN_B, stroke_width=2)
+        server_body.move_to([sv_x, sv_y, 0])
+        server_units = VGroup(*[
+            Line([sv_x - 0.38, sv_y + dy, 0], [sv_x + 0.38, sv_y + dy, 0],
+                 color=GREEN_B, stroke_width=1.2)
+            for dy in [0.45, 0.15, -0.15, -0.45]
+        ])
+        server_leds = VGroup(*[
+            Dot(point=[sv_x + 0.30, sv_y + dy, 0], radius=0.04, color=GREEN)
+            for dy in [0.45, 0.15, -0.15, -0.45]
+        ])
+        server_lbl = Text("Server", font_size=18, color=GREEN_B).move_to([sv_x, sv_y - 1.25, 0])
+        server = VGroup(server_body, server_units, server_leds, server_lbl)
 
-        # Fade out title → transition into binary stream
-        self.play(FadeOut(title_group), run_time=0.8)
+        # Noise zap in the middle
+        noise_zap = Text("⚡", font_size=48, color=RED).move_to([0, -1.0, 0])
+        noise_lbl = Text("noise", font_size=18, color=RED).next_to(noise_zap, DOWN, buff=0.1)
+        noise_group = VGroup(noise_zap, noise_lbl)
 
-        # Fixed bit positions — no randomness so renders stay reproducible
+        # Flying bits — created twice and re-animated for a continuous stream feel
+        def spawn_flying_bits(start_x, end_x, color=YELLOW_B):
+            return VGroup(*[
+                Text(str((i + start_x) % 2 if start_x else i % 2),
+                     font_size=22, color=color)
+                .move_to([start_x, -1.0 + (i - 2) * 0.18, 0])
+                for i in range(5)
+            ])
+
+        self.play(FadeIn(wifi, shift=RIGHT * 0.2), FadeIn(server, shift=LEFT * 0.2),
+                  run_time=0.7)
+
+        # First wave of bits left → right
+        bits_wave1 = VGroup(*[
+            Text(str(i % 2), font_size=22, color=YELLOW_B)
+            .move_to([wt_x + 0.6, -1.0 + (i - 2) * 0.20, 0])
+            for i in range(5)
+        ])
+        self.play(FadeIn(bits_wave1, lag_ratio=0.08), run_time=0.4)
+        self.play(
+            LaggedStart(
+                *[b.animate.move_to([sv_x - 0.6, -1.0 + (i - 2) * 0.20, 0])
+                  for i, b in enumerate(bits_wave1)],
+                lag_ratio=0.12
+            ),
+            FadeIn(noise_group, scale=0.6),
+            run_time=2.8
+        )
+        self.play(FadeOut(bits_wave1), run_time=0.3)
+
+        # Second small wave to keep motion through the rest of the sentence
+        bits_wave2 = VGroup(*[
+            Text(str((i + 1) % 2), font_size=22, color=YELLOW_B)
+            .move_to([wt_x + 0.6, -1.0 + (i - 1) * 0.22, 0])
+            for i in range(3)
+        ])
+        self.play(
+            FadeIn(bits_wave2),
+            *[b.animate.move_to([sv_x - 0.6, -1.0 + (i - 1) * 0.22, 0])
+              for i, b in enumerate(bits_wave2)],
+            run_time=2.5
+        )
+        self.play(FadeOut(bits_wave2), run_time=0.3)
+        # Sentence 2 budget: 8.5s. Used: 0.7+0.4+2.8+0.3+2.5+0.3 = 7.0s. Hold the rest.
+        self.wait(8.5 - 7.0)   # 1.5 sec
+
+        # ── Sentence 3 (~10.5 sec): "This is where coding theory comes in.
+        #    Coding theory is the mathematical study of how to add redundancy
+        #    to data so that we can detect and correct errors introduced by
+        #    noise."
+        # Visual: Wi-Fi/server fade, "Coding Theory" appears + a tiny demo:
+        # 6 bits, one flips red (error), shield + ✓ appear (corrected).
+
+        self.play(FadeOut(wifi), FadeOut(server), FadeOut(noise_group),
+                  run_time=0.6)
+
+        ct_title = Text("Coding Theory", font_size=44, color=YELLOW_B, weight=BOLD)
+        ct_title.move_to([0, 0.0, 0])
+        self.play(Write(ct_title), run_time=0.8)
+        self.play(ct_title.animate.move_to([0, 0.6, 0]).scale(0.85), run_time=0.4)
+
+        # Tiny correction demo
+        DEMO_BITS = [1, 0, 1, 1, 0, 1]
+        demo_x0 = -1.7
+        demo_step = 0.65
+        demo_squares = VGroup(*[
+            Square(side_length=0.55, fill_opacity=0.45,
+                   fill_color=BLUE_D, stroke_color=BLUE_B, stroke_width=1.5)
+            .move_to([demo_x0 + i * demo_step, -0.6, 0])
+            for i in range(6)
+        ])
+        demo_labels = VGroup(*[
+            Text(str(DEMO_BITS[i]), font_size=22, color=WHITE)
+            .move_to(demo_squares[i])
+            for i in range(6)
+        ])
+        self.play(FadeIn(demo_squares, lag_ratio=0.06),
+                  FadeIn(demo_labels, lag_ratio=0.06), run_time=0.7)
+
+        # Flip bit index 3 to red (error)
+        ERR_I = 3
+        flipped_lbl = Text(str(1 - DEMO_BITS[ERR_I]), font_size=22, color=WHITE)
+        flipped_lbl.move_to(demo_squares[ERR_I])
+        err_caption = Text("error", font_size=18, color=RED).next_to(demo_squares[ERR_I], UP, buff=0.15)
+        self.play(
+            demo_squares[ERR_I].animate.set_fill(RED, opacity=0.85).set_stroke(RED_A, 2.0),
+            Transform(demo_labels[ERR_I], flipped_lbl),
+            FadeIn(err_caption),
+            run_time=0.6
+        )
+        self.wait(1.0)
+
+        # Correction
+        corrected_lbl = Text(str(DEMO_BITS[ERR_I]), font_size=22, color=WHITE)
+        corrected_lbl.move_to(demo_squares[ERR_I])
+        check_mark = Text("✓", font_size=40, color=GREEN).next_to(demo_squares, RIGHT, buff=0.45)
+        self.play(
+            demo_squares[ERR_I].animate.set_fill(GREEN, opacity=0.85).set_stroke(GREEN_A, 2.0),
+            Transform(demo_labels[ERR_I], corrected_lbl),
+            FadeOut(err_caption),
+            FadeIn(check_mark),
+            run_time=0.6
+        )
+        # Sentence 3 budget: 10.5s. Used so far: 0.6+0.8+0.4+0.7+0.6+1.0+0.6 = 4.7s. Hold the rest.
+        self.wait(10.5 - 4.7)   # 5.8 sec
+
+        # ── Sentence 4 (~2.5 sec to land "Rowhammer" at ~25s):
+        #    "Today, we focus on a specific failure mode inside modern
+        #    computers called Rowhammer."  Visuals fade → brief binary cascade
+        #    → "Rowhammer" label.
         BIT_POSITIONS = [
             (-6.0, 2.5), (-4.5, 1.8), (-2.8, 3.0), (-1.2, 2.2), (0.5, 3.1),
             (2.0,  2.6), (3.8,  1.9), (5.5,  2.8),
@@ -54,45 +194,61 @@ class RowhammerIntro(Scene):
             (-6.0,-3.1), (-3.8,-3.4), (-1.5,-3.0), (0.8, -3.2), (2.8, -3.5),
             (5.2, -3.1),
         ]
-        BIT_VALUES = "10100110011010010100101100101"
-
+        BIT_VALUES_STR = "10100110011010010100101100101"
         bits = VGroup(*[
-            Text(b, font_size=28, color=GREEN if b == "1" else BLUE_B)
+            Text(b, font_size=22, color=GREEN if b == "1" else BLUE_B)
             .move_to([x, y, 0])
-            for (x, y), b in zip(BIT_POSITIONS, BIT_VALUES)
+            for (x, y), b in zip(BIT_POSITIONS, BIT_VALUES_STR)
         ])
-
-        # Binary stream is visible during the transition — show briefly
-        self.play(FadeIn(bits, lag_ratio=0.04), run_time=1.5)
-        self.wait(1.5)   # brief pause on binary stream
-
-        # "Today, we focus on a specific failure mode inside modern computers
-        #  called Rowhammer."
-        # 14 words × 0.4 = 5.6 sec
         rowhammer_label = Text("Rowhammer", font_size=80, color=RED, weight=BOLD)
-        self.play(FadeOut(bits), FadeIn(rowhammer_label), run_time=1.0)
-        self.wait(5.6 - 1.0)   # 4.6 sec
-        self.play(FadeOut(rowhammer_label), run_time=0.8)
+
+        self.play(
+            FadeOut(VGroup(title_group, ct_title, demo_squares, demo_labels, check_mark)),
+            run_time=0.5
+        )
+        self.play(FadeIn(bits, lag_ratio=0.04), run_time=0.8)
+        self.play(FadeOut(bits), FadeIn(rowhammer_label), run_time=1.2)
+        # Sentence 4 budget: 2.5s. Used: 0.5+0.8+1.2 = 2.5s ✓ — Rowhammer label
+        # finishes appearing at ~25.0s.
+
+        # ── Sentence 5 (~17 sec, lands DRAM at ~42s):
+        #    "The problem we study is this: How can we reliably correct multiple
+        #    simultaneous bit flips caused by physical interference in memory?"
+        problem_q = Text(
+            "How can we reliably correct multiple\nsimultaneous bit flips caused by\nphysical interference in memory?",
+            font_size=34, color=YELLOW_B, line_spacing=1.2, weight=BOLD
+        )
+        # Hold Rowhammer briefly while narration says "The problem we study is this:"
+        self.wait(3.5)
+        self.play(FadeOut(rowhammer_label), FadeIn(problem_q), run_time=1.0)
+        self.wait(17.0 - 3.5 - 1.0 - 0.6)   # 11.9 sec — read the question
+        self.play(FadeOut(problem_q), run_time=0.6)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scene 1 (Part 2) — DRAM grid + Rowhammer attack (~126 sec).
+# Iterate freely; Part 1 stays cached as rendered/RowhammerIntroPart1.mp4.
+# ─────────────────────────────────────────────────────────────────────────────
+class RowhammerIntroPart2(Scene):
+    def construct(self):
 
         # ═════════════════════════════════════════════════════════════════════
-        # PART 2 — DRAM Grid + Rowhammer Visualization
+        # PART 2 — DRAM Grid + Rowhammer Visualization (~126 sec)
         # ═════════════════════════════════════════════════════════════════════
 
         ROWS, COLS = 5, 5
         SIDE, GAP  = 0.82, 0.13
-        STEP       = SIDE + GAP        # 0.95 units between cell centers
-        HAMMER_ROW = 2                 # index of the "hammered" row
+        STEP       = SIDE + GAP
+        HAMMER_ROW = 2
 
-        # Hardcoded 5×5 bit values — fully reproducible
         BIT_DATA = [
-            [1, 0, 1, 0, 1],   # Row 0
-            [0, 1, 1, 0, 0],   # Row 1 — adjacent (above hammered)
-            [1, 0, 0, 1, 1],   # Row 2 — HAMMERED
-            [0, 1, 0, 0, 1],   # Row 3 — adjacent (below hammered)
-            [1, 1, 0, 1, 0],   # Row 4
+            [1, 0, 1, 0, 1],
+            [0, 1, 1, 0, 0],
+            [1, 0, 0, 1, 1],   # HAMMERED
+            [0, 1, 0, 0, 1],
+            [1, 1, 0, 1, 0],
         ]
 
-        # Build cells[r][c] = VGroup(Square, Text bit-label)
         cells = []
         all_cells_vgroup = VGroup()
         for r in range(ROWS):
@@ -113,7 +269,6 @@ class RowhammerIntro(Scene):
                 all_cells_vgroup.add(cell)
             cells.append(row)
 
-        # Row labels on the left
         row_labels = VGroup(*[
             Text(f"Row {r}", font_size=15, color=GRAY)
             .move_to([-(COLS / 2) * STEP - 0.65,
@@ -124,20 +279,14 @@ class RowhammerIntro(Scene):
         dram_title = Text("DRAM Memory", font_size=34, color=WHITE)
         dram_title.to_edge(UP, buff=0.35)
 
-        # "Modern computer memory, or DRAM, is arranged in a massive grid of
-        #  rows and columns. As manufacturers pack these rows closer together
-        #  to increase capacity, a dangerous electrical vulnerability becomes
-        #  more prominent."
-        # 36 words × 0.4 = 14.4 sec
+        # ── Phase 1 (0 → 15s): Sentence 6 + start of sentence 7
+        #   "Modern computer memory, or DRAM, is arranged in a massive grid…"
+        #   Hammered-row pulse begins on the word "hammers" at 15s.
         self.play(FadeIn(dram_title), Write(row_labels), run_time=1.0)
         self.play(FadeIn(all_cells_vgroup, lag_ratio=0.03), run_time=1.5)
-        self.wait(14.4 - 1.0 - 1.5)   # 11.9 sec remaining
+        self.wait(15.0 - 1.0 - 1.5)   # 12.5 sec
 
-        # "If a malicious program repeatedly accesses, or 'hammers,' a specific
-        #  row of memory, the electrical charge leaks."
-        # 18 words × 0.4 = 7.2 sec
-
-        # Colour hammer row red
+        # ── Phase 2 (15 → 23s): Hammered row + pulse
         self.play(
             *[cells[HAMMER_ROW][c][0].animate
               .set_fill(RED, opacity=0.75).set_stroke(RED_A, width=2.5)
@@ -148,29 +297,23 @@ class RowhammerIntro(Scene):
         hammer_note.next_to(cells[HAMMER_ROW][COLS - 1][0], RIGHT, buff=0.3)
         self.play(FadeIn(hammer_note), run_time=0.4)
 
-        # Pulse the hammered row 3 times to show it being "hammered"
-        for _ in range(3):
+        # 5 pulses × 0.6s = 3.0s of repeated "hammering"
+        for _ in range(5):
             self.play(*[cells[HAMMER_ROW][c][0].animate.set_fill(RED, opacity=1.0)
-                        for c in range(COLS)], run_time=0.25)
+                        for c in range(COLS)], run_time=0.3)
             self.play(*[cells[HAMMER_ROW][c][0].animate.set_fill(RED, opacity=0.6)
-                        for c in range(COLS)], run_time=0.25)
+                        for c in range(COLS)], run_time=0.3)
+        self.wait(8.0 - 0.6 - 0.4 - 3.0)   # 4.0 sec
 
-        self.wait(7.2 - 0.6 - 0.4 - 3 * 0.5)   # 4.7 sec remaining
-
-        # "This can physically flip the 1s and 0s in the adjacent rows,
-        #  corrupting data or allowing hackers to bypass security privileges."
-        # 21 words × 0.4 = 8.4 sec
-
-        # Cells to flip — 3 from Row 1 (above) + 2 from Row 3 (below)
-        FLIP_IDX = [(1, 1), (1, 3), (3, 0), (3, 2), (3, 4)]
-
-        # Build flipped-bit labels (BLACK text is readable on YELLOW background)
+        # ── Phase 3 (23 → 33s): Bit flips on the word "flip the 1s and 0s"
+        # Clustered burst — adjacent cells in rows above and below the
+        # hammered row, all grouped around columns 1–3.
+        FLIP_IDX = [(1, 1), (1, 2), (1, 3), (3, 2), (3, 3)]
         new_labels = [
             Text(str(1 - BIT_DATA[r][c]), font_size=20, color=BLACK)
             .move_to(cells[r][c][1])
             for r, c in FLIP_IDX
         ]
-
         flip_note = Text("← Bit Flips!", font_size=20, color=YELLOW, weight=BOLD)
         flip_note.next_to(cells[1][COLS - 1][0], RIGHT, buff=0.3)
 
@@ -183,12 +326,30 @@ class RowhammerIntro(Scene):
             FadeIn(flip_note),
             run_time=1.2
         )
-        # "Unlike random cosmic-ray bit flips, Rowhammer produces structured
-        #  errors — burst errors clustered in nearby memory cells. This matters
-        #  because Hamming codes assume random independent errors. Rowhammer
-        #  violates this assumption entirely."
-        # 8.4 + 37 words × 0.4 = 8.4 + 14.8 = 23.2 sec total for flip section
-        self.wait(23.2 - 1.2)   # 22.0 sec
+        self.wait(10.0 - 1.2)   # 8.8 sec
+
+        # ── Phase 4 (33 → 47s): "Rowhammer Attack" callout on the word
+        #   "Rowhammer" in sentence 9.
+        rh_banner = Text("Rowhammer Attack", font_size=36, color=RED, weight=BOLD)
+        rh_banner.to_edge(DOWN, buff=0.6)
+        rh_underline = Line(
+            rh_banner.get_corner(DOWN + LEFT) + DOWN * 0.08,
+            rh_banner.get_corner(DOWN + RIGHT) + DOWN * 0.08,
+            color=RED, stroke_width=2.5
+        )
+        self.play(FadeIn(rh_banner, shift=UP * 0.2), GrowFromCenter(rh_underline),
+                  run_time=0.6)
+        self.wait(14.0 - 0.6)   # 13.4 sec
+
+        # ── Phase 5 (47 → end): "burst error" callout on the word "burst
+        #   errors" in sentence 9, then sentence 10 holds.
+        burst_note = Text("(burst error)", font_size=20, color=YELLOW_B, weight=BOLD)
+        burst_note.next_to(flip_note, DOWN, buff=0.15, aligned_edge=LEFT)
+        self.play(FadeIn(burst_note), run_time=0.6)
+        # Tail: 126 - 47 - 0.6 = 78.4 sec — covers "...creating what coding
+        # theory calls a burst error." + sentence 10 + a closing hold on the
+        # final corrupted-DRAM tableau.
+        self.wait(78.4)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -356,7 +517,50 @@ class HammingFails(Scene):
         limit_text = Text("Can fix: 1 error only", font_size=24, color=RED_B)
         limit_text.next_to(sec_ded_text, DOWN, buff=0.35)
         self.play(FadeIn(limit_text), run_time=0.4)
-        self.wait(14.0 - 0.4)   # 13.6 sec
+        self.wait(2.0)
+
+        # ── 2-bit "detect but can't fix" intermediate case ──────────────────
+        # Script narration: "if two bits flip at once, the parity checks produce
+        # a pattern that could correspond to multiple possible error locations.
+        # The decoder can detect that something is wrong, but it cannot
+        # determine which bits to fix."
+        TWO_IDX = [1, 4]   # D2 and P1 flip at once
+        two_flip_lbls = [
+            Text(str(1 - BIT_VALUES[i]), font_size=30, color=WHITE)
+            .move_to(blocks[i][1])
+            for i in TWO_IDX
+        ]
+        self.play(
+            *[blocks[i][0].animate.set_fill(RED, opacity=0.85).set_stroke(RED_A, 2.5)
+              for i in TWO_IDX],
+            *[Transform(blocks[i][1], two_flip_lbls[j]) for j, i in enumerate(TWO_IDX)],
+            run_time=0.6
+        )
+        two_note = Text("2 bits flipped", font_size=22, color=RED, weight=BOLD)
+        two_note.next_to(block_group, UP, buff=0.3)
+        self.play(FadeIn(two_note), run_time=0.3)
+        self.wait(1.5)
+
+        ambiguous_note = Text("Detected — but can't fix:\nmultiple possible error locations",
+                              font_size=22, color=YELLOW_B, line_spacing=1.1)
+        ambiguous_note.move_to(two_note).shift(UP * 0.1)
+        self.play(FadeOut(two_note), FadeIn(ambiguous_note), run_time=0.4)
+        self.wait(3.5)
+
+        # Reset the 2-bit case so we can show the catastrophic 3-bit case
+        reset_two = [
+            Text(str(BIT_VALUES[i]), font_size=30, color=WHITE).move_to(blocks[i][1])
+            for i in TWO_IDX
+        ]
+        self.play(
+            *[blocks[i][0].animate
+              .set_fill(ORIG_COLORS[i], opacity=0.55).set_stroke(WHITE, 1.8)
+              for i in TWO_IDX],
+            *[Transform(blocks[i][1], reset_two[j]) for j, i in enumerate(TWO_IDX)],
+            FadeOut(ambiguous_note),
+            run_time=0.5
+        )
+        self.wait(14.0 - 0.4 - 2.0 - 0.6 - 0.3 - 1.5 - 0.4 - 3.5 - 0.5)   # ~0.8 sec
 
         # "A Rowhammer attack causes multiple bits to flip simultaneously.
         #  Rowhammer doesn't cause isolated errors; it creates bursts of
@@ -431,6 +635,13 @@ class HammingFails(Scene):
 # ─────────────────────────────────────────────────────────────────────────────
 class LDPCSolution(Scene):
     def construct(self):
+        # Timeline alignment from the edited full video:
+        # - Previous section ends at 2:53.
+        # - "LDPC codes can correct multiple simultaneous errors" begins at 3:52.
+        # - "Tanner Graph" is first mentioned at 4:07.
+        LDPC_MULTI_ERROR_CUE = 59.0
+        TANNER_FIRST_MENTION_CUE = 74.0
+        PRE_TANNER_BEAT = TANNER_FIRST_MENTION_CUE - LDPC_MULTI_ERROR_CUE
 
         # ─────────────────────────────────────────────────────────────────────
         # Shared Tanner-graph topology (used in Parts 3–5)
@@ -541,10 +752,13 @@ class LDPCSolution(Scene):
         # Row 2 (blue):  bits 1,2,3,6 → cols 1,2,3,6 = 1; rest = 0
         # Parity checks: BIT_VALUES=[1,0,1,0,1,0,1]
         #   row0: 1⊕0⊕0⊕1 = 0 ✓   row1: 1⊕1⊕0⊕0 = 0 ✓   row2: 0⊕1⊕0⊕1 = 0 ✓
+        # Sparse pattern (~30% ones) so the matrix visually matches the
+        # "mostly zeros" narration. Topology is illustrative — not a literal
+        # encoding of the smaller Tanner graph that follows.
         MAT_DATA = [
-            [1, 1, 0, 1, 1, 0, 0],
-            [1, 0, 1, 1, 0, 1, 0],
-            [0, 1, 1, 1, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0],
+            [0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 0, 0, 1],
         ]
 
         CELL_S = 0.52
@@ -669,7 +883,7 @@ class LDPCSolution(Scene):
         self.play(FadeIn(tiny_bits), FadeIn(check_squares), run_time=0.6)
         self.play(FadeIn(tri_polys), run_time=0.6)
         self.play(FadeIn(density_label), run_time=0.4)
-        self.wait(15.2 - (0.5 + 0.5 + 3.8) - 0.6 - 0.6 - 0.4)   # 9.3 sec
+        self.wait(15.2 - (0.5 + 0.5 + 3.8) - 0.6 - 0.6 - 0.4 + 2.2)   # 11.5 sec; aligns next cue at 3:52
 
         self.play(
             FadeOut(VGroup(
@@ -687,34 +901,117 @@ class LDPCSolution(Scene):
         # "LDPC codes can correct multiple simultaneous errors because each
         #  bit participates in many independent, sparse constraints, allowing
         #  the decoder to accumulate consistent evidence about which bits are
-        #  wrong. To prove why this is so powerful against Rowhammer, we can
+        #  wrong."
+        # This pre-Tanner beat starts at 3:52 in the edited timeline and holds
+        # until the first "Tanner Graph" mention at 4:07.
+
+        multi_error_title = Text(
+            "Multiple simultaneous errors",
+            font_size=38,
+            color=RED,
+            weight=BOLD,
+        ).to_edge(UP, buff=0.45)
+
+        bits_row = VGroup()
+        evidence_bits = []
+        for i, bit in enumerate(BIT_VALUES):
+            bit_circle = Circle(radius=0.28, color=WHITE, stroke_width=2.0)
+            bit_circle.set_fill(BLACK, opacity=1.0)
+            bit_circle.move_to([(i - 3) * 0.85, 1.15, 0])
+            bit_label = Text(str(bit), font_size=22, color=WHITE).move_to(bit_circle)
+            bit_group = VGroup(bit_circle, bit_label)
+            evidence_bits.append(bit_group)
+            bits_row.add(bit_group)
+
+        simultaneous_errors = [1, 2, 4]
+        error_marks = VGroup(*[
+            Text("?", font_size=25, color=RED, weight=BOLD).move_to(evidence_bits[i][1])
+            for i in simultaneous_errors
+        ])
+
+        constraints_title = Text(
+            "Sparse constraints create independent evidence",
+            font_size=24,
+            color=GREEN_B,
+        ).move_to([0, 0.25, 0])
+
+        constraint_cards = VGroup()
+        constraint_specs = [
+            ("check A", "bits 0, 1, 3, 4", GREEN),
+            ("check B", "bits 0, 2, 3, 5", RED),
+            ("check C", "bits 1, 2, 3, 6", BLUE),
+        ]
+        for idx, (name, detail, color) in enumerate(constraint_specs):
+            card = RoundedRectangle(
+                corner_radius=0.12,
+                width=3.45,
+                height=0.65,
+                color=color,
+                stroke_width=2,
+                fill_color=BLACK,
+                fill_opacity=0.82,
+            )
+            card.move_to([0, -0.75 - idx * 0.78, 0])
+            card_text = Text(f"{name}: {detail}", font_size=19, color=WHITE)
+            card_text.move_to(card)
+            constraint_cards.add(VGroup(card, card_text))
+
+        evidence_note = Text(
+            "Each damaged bit is checked from several directions.",
+            font_size=22,
+            color=YELLOW_B,
+        ).to_edge(DOWN, buff=0.55)
+
+        self.play(FadeIn(multi_error_title), FadeIn(bits_row, lag_ratio=0.04), run_time=1.0)
+        self.play(
+            *[evidence_bits[i][0].animate.set_stroke(RED, 3.2) for i in simultaneous_errors],
+            *[FadeOut(evidence_bits[i][1]) for i in simultaneous_errors],
+            FadeIn(error_marks),
+            run_time=0.8,
+        )
+        self.play(FadeIn(constraints_title), run_time=0.6)
+        self.play(FadeIn(constraint_cards, lag_ratio=0.18), run_time=1.2)
+        self.play(FadeIn(evidence_note), run_time=0.5)
+        self.wait(PRE_TANNER_BEAT - 1.0 - 0.8 - 0.6 - 1.2 - 0.5)
+
+        # "To prove why this is so powerful against Rowhammer, we can
         #  visualize this matrix as a bipartite graph, called a Tanner Graph."
-        # 62 words × 0.4 = 24.8 sec  (Tanner graph build covers this)
+        # Tanner graph build begins at 4:07 in the edited timeline.
 
         tanner_title = Text("Tanner Graph", font_size=44, color=YELLOW, weight=BOLD)
         tanner_title.to_edge(UP, buff=0.4)
-        self.play(FadeIn(tanner_title), run_time=0.6)
+        self.play(
+            FadeOut(VGroup(
+                multi_error_title, bits_row, error_marks, constraints_title,
+                constraint_cards, evidence_note,
+            )),
+            FadeIn(tanner_title),
+            run_time=0.6,
+        )
 
-        # 7 variable nodes — short horizontal tick marks
+        # 7 variable nodes — circles (script: "circles on the top")
         VAR_Y  = 1.4
         VAR_X  = [(i - 3) * 1.55 for i in range(7)]
-        var_ticks = VGroup(*[
-            Line([-0.28, 0, 0], [0.28, 0, 0], color=WHITE, stroke_width=2.5)
+        VAR_R = 0.30
+        var_circles = [
+            Circle(radius=VAR_R, color=WHITE, stroke_width=2.5)
+            .set_fill(BLACK, opacity=1.0)
             .move_to([VAR_X[i], VAR_Y, 0])
             for i in range(7)
-        ])
+        ]
+        var_ticks = VGroup(*var_circles)
 
-        # Bit labels above ticks: first 4 black/white, last 3 blue
+        # Bit labels inside circles
         var_labels = VGroup(*[
-            Text(str(BIT_VALUES[i]), font_size=28,
+            Text(str(BIT_VALUES[i]), font_size=22,
                  color=WHITE if i < 4 else BLUE_B)
-            .move_to([VAR_X[i], VAR_Y + 0.52, 0])
+            .move_to([VAR_X[i], VAR_Y, 0])
             for i in range(7)
         ])
 
         var_type_labels = VGroup(*[
             Text("m" if i < 4 else "p", font_size=14, color=GRAY)
-            .move_to([VAR_X[i], VAR_Y - 0.35, 0])
+            .move_to([VAR_X[i], VAR_Y - VAR_R - 0.18, 0])
             for i in range(7)
         ])
 
@@ -745,17 +1042,17 @@ class LDPCSolution(Scene):
             edge_lines.append(line)
         edge_group = VGroup(*edge_lines)
 
-        self.play(FadeIn(var_ticks), FadeIn(var_labels), FadeIn(var_type_labels), run_time=1.0)
-        self.play(FadeIn(check_nodes), FadeIn(check_node_labels), run_time=0.8)
-        self.play(Create(edge_group, lag_ratio=0.05), run_time=1.5)
-        self.wait(9.2 - 0.6 - 1.0 - 0.8 - 1.5)   # 5.3 sec  (first beat—Tanner title + nodes appear)
+        self.play(FadeIn(var_ticks), FadeIn(var_labels), FadeIn(var_type_labels), run_time=0.8)
+        self.play(FadeIn(check_nodes), FadeIn(check_node_labels), run_time=0.6)
+        self.play(Create(edge_group, lag_ratio=0.05), run_time=1.2)
+        self.wait(4.2 - 0.6 - 0.8 - 0.6 - 1.2)   # 1.0 sec; graph appears on Tanner mention
 
         # "The circles at the top are the bits of our data."
         # 11 words × 0.4 = 4.4 sec
         bit_note  = Text("Variable nodes (data bits)", font_size=22, color=WHITE)
         bit_note.move_to([0, 2.9, 0])
         self.play(FadeIn(bit_note), run_time=0.6)
-        self.wait(4.4 - 0.6)   # 3.8 sec
+        self.wait(4.0 - 0.6)   # 3.4 sec
 
         # "The squares at the bottom are our parity checks. The lines
         #  connecting them are exactly where the ones were in our sparse matrix."
@@ -763,7 +1060,7 @@ class LDPCSolution(Scene):
         chk_note  = Text("Check nodes (parity eqs.)", font_size=22, color=WHITE)
         chk_note.move_to([0, -2.9, 0])
         self.play(FadeIn(chk_note), run_time=0.6)
-        self.wait(9.2 - 0.6)   # 8.6 sec
+        self.wait(5.0 - 0.6)   # 4.4 sec
 
         self.play(
             FadeOut(bit_note), FadeOut(chk_note),
@@ -778,8 +1075,8 @@ class LDPCSolution(Scene):
         ATTACK_IDX = [1, 2, 4]   # bits 1, 2, 4 get erased
 
         q_marks = VGroup(*[
-            Text("?", font_size=32, color=RED, weight=BOLD)
-            .move_to([VAR_X[i], VAR_Y + 0.52, 0])
+            Text("?", font_size=24, color=RED, weight=BOLD)
+            .move_to([VAR_X[i], VAR_Y, 0])
             for i in ATTACK_IDX
         ])
 
@@ -788,7 +1085,12 @@ class LDPCSolution(Scene):
         # "When a Rowhammer attack corrupts our memory, it might erase multiple
         #  bits at once. Let's simulate this by turning three bits into unknown
         #  question marks."  (~27 words = 10.8 sec)
-        self.play(FadeOut(attacked_labels), FadeIn(q_marks), run_time=0.6)
+        self.play(
+            FadeOut(attacked_labels),
+            FadeIn(q_marks),
+            *[var_circles[i].animate.set_stroke(RED, 3.5) for i in ATTACK_IDX],
+            run_time=0.6
+        )
         self.wait(10.8 - 0.6)   # 10.2 sec
 
         # "The LDPC decoder uses an algorithm called Iterative Belief
@@ -828,24 +1130,29 @@ class LDPCSolution(Scene):
         self.wait(8.0 - 0.5 - 0.6)   # 6.9 sec  (narration before equation)
 
         # "Since 1 plus 0 plus 0 is 1, the missing bit must be a 1..."
-        eq1 = MathTex(r"1", r"\oplus", r"?", r"\oplus", r"0",
-                      r"\oplus", r"0", r"=", r"0", font_size=48)
+        eq1 = MathTex(r"1", r"+", r"?", r"+", r"0",
+                      r"+", r"0", r"=", r"\text{Even}", font_size=44)
         eq1[2].set_color(RED)
         eq1.to_edge(UP, buff=0.55)
         self.play(FadeIn(eq1), run_time=0.5)
         self.wait(4.4 - 0.5)   # 3.9 sec
 
         # Resolve: ? → GREEN 1
-        eq1_solved = MathTex(r"1", r"\oplus", r"1", r"\oplus", r"0",
-                             r"\oplus", r"0", r"=", r"0", font_size=48)
+        eq1_solved = MathTex(r"1", r"+", r"1", r"+", r"0",
+                             r"+", r"0", r"=", r"\text{Even}", font_size=44)
         eq1_solved[2].set_color(GREEN)
         eq1_solved.to_edge(UP, buff=0.55)
         self.play(Transform(eq1, eq1_solved), run_time=0.6)
 
-        # Replace bit-2 "?" on the graph with GREEN "1"
-        solved2 = Text("1", font_size=28, color=GREEN)
-        solved2.move_to([VAR_X[2], VAR_Y + 0.52, 0])
-        self.play(FadeOut(q_marks[1]), FadeIn(solved2), run_time=0.5)
+        # Replace bit-2 "?" on the graph with GREEN "1"; turn its circle green
+        solved2 = Text("1", font_size=22, color=GREEN)
+        solved2.move_to([VAR_X[2], VAR_Y, 0])
+        self.play(
+            FadeOut(q_marks[1]),
+            FadeIn(solved2),
+            var_circles[2].animate.set_stroke(GREEN, 3.5),
+            run_time=0.5
+        )
         self.play(FadeOut(eq1), run_time=0.4)
         self.wait(22.8 - 8.0 - 4.4 - 0.6 - 0.5 - 0.4)   # ~8.9 sec
 
@@ -860,24 +1167,29 @@ class LDPCSolution(Scene):
         self.play(chk2_eg.animate.set_stroke(width=4.0), run_time=0.3)
         self.play(chk2_eg.animate.set_stroke(width=1.8), run_time=0.3)
 
-        eq2 = MathTex(r"?", r"\oplus", r"1", r"\oplus", r"0",
-                      r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq2 = MathTex(r"?", r"+", r"1", r"+", r"0",
+                      r"+", r"1", r"=", r"\text{Even}", font_size=44)
         eq2[0].set_color(RED)
         eq2.to_edge(UP, buff=0.55)
         self.play(FadeIn(eq2), run_time=0.5)
         self.wait(2.4 - 0.5)   # 1.9 sec
 
-        eq2_solved = MathTex(r"0", r"\oplus", r"1", r"\oplus", r"0",
-                             r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq2_solved = MathTex(r"0", r"+", r"1", r"+", r"0",
+                             r"+", r"1", r"=", r"\text{Even}", font_size=44)
         eq2_solved[0].set_color(GREEN)
         eq2_solved.to_edge(UP, buff=0.55)
         self.play(Transform(eq2, eq2_solved), run_time=0.6)
 
-        solved1 = Text("0", font_size=28, color=GREEN)
-        solved1.move_to([VAR_X[1], VAR_Y + 0.52, 0])
-        self.play(FadeOut(q_marks[0]), FadeIn(solved1), run_time=0.5)
+        solved1 = Text("0", font_size=22, color=GREEN)
+        solved1.move_to([VAR_X[1], VAR_Y, 0])
+        self.play(
+            FadeOut(q_marks[0]),
+            FadeIn(solved1),
+            var_circles[1].animate.set_stroke(GREEN, 3.5),
+            run_time=0.5
+        )
         self.play(FadeOut(eq2), run_time=0.4)
-        self.wait(9.6 - 0.5 - 0.6 - 0.5 - 0.6 - 0.5 - 0.4)   # ~6.5 sec
+        self.wait(4.5)   # trimmed 2 sec so the final white-node solve lands earlier
 
         # ── Round 3: WHITE check node (c0) solves bit 4 → 1 ─────────────────
         # ~17 words × 0.4 = 6.8 sec
@@ -890,22 +1202,27 @@ class LDPCSolution(Scene):
         self.play(chk0_eg.animate.set_stroke(width=4.0), run_time=0.3)
         self.play(chk0_eg.animate.set_stroke(width=1.8), run_time=0.3)
 
-        eq3 = MathTex(r"1", r"\oplus", r"0", r"\oplus", r"0",
-                      r"\oplus", r"?", r"=", r"0", font_size=48)
+        eq3 = MathTex(r"1", r"+", r"0", r"+", r"0",
+                      r"+", r"?", r"=", r"\text{Even}", font_size=44)
         eq3[6].set_color(RED)
         eq3.to_edge(UP, buff=0.55)
         self.play(FadeIn(eq3), run_time=0.5)
         self.wait(1.6 - 0.5)   # 1.1 sec
 
-        eq3_solved = MathTex(r"1", r"\oplus", r"0", r"\oplus", r"0",
-                             r"\oplus", r"1", r"=", r"0", font_size=48)
+        eq3_solved = MathTex(r"1", r"+", r"0", r"+", r"0",
+                             r"+", r"1", r"=", r"\text{Even}", font_size=44)
         eq3_solved[6].set_color(GREEN)
         eq3_solved.to_edge(UP, buff=0.55)
         self.play(Transform(eq3, eq3_solved), run_time=0.6)
 
-        solved4 = Text("1", font_size=28, color=GREEN)
-        solved4.move_to([VAR_X[4], VAR_Y + 0.52, 0])
-        self.play(FadeOut(q_marks[2]), FadeIn(solved4), run_time=0.5)
+        solved4 = Text("1", font_size=22, color=GREEN)
+        solved4.move_to([VAR_X[4], VAR_Y, 0])
+        self.play(
+            FadeOut(q_marks[2]),
+            FadeIn(solved4),
+            var_circles[4].animate.set_stroke(GREEN, 3.5),
+            run_time=0.5
+        )
         self.play(FadeOut(eq3), run_time=0.4)
         self.wait(6.8 - 0.5 - 0.6 - 0.5 - 0.6 - 0.5 - 0.4)   # ~3.7 sec
 
@@ -916,20 +1233,27 @@ class LDPCSolution(Scene):
                               color=GREEN, weight=BOLD)
         corrected_text.move_to([0, -3.0, 0])
         self.play(FadeIn(corrected_text), run_time=0.6)
-        # "Within just a few iterations...Rowhammer errors."  ~17 words = 6.8 sec
-        self.wait(8.8 - 0.6)   # 8.2 sec
+        # "Within just a few iterations..." now acts as a short bridge so the
+        # careful-balance beat begins at 5:34 in the edited full timeline.
+        self.wait(1.4)
 
         self.play(FadeOut(corrected_text), run_time=0.4)
 
-        # "Of course...decoding performance."  ~47 words = 18.8 sec
-        self.wait(25.6 - 8.8 - 0.4 - 0.5)   # ~15.9 sec
+        # "Of course, if too many bits flip, the decoder can get stuck.
+        #  Designing these codes is a careful balance between sparsity,
+        #  redundancy, and performance."  (script: fade in this exact text)
+        balance_text = Text("Balance: Sparsity, Redundancy, Performance",
+                            font_size=32, color=YELLOW_B, weight=BOLD)
+        balance_text.move_to([0, -3.0, 0])
+        self.play(FadeIn(balance_text), run_time=0.6)
+        self.wait(4.4)   # careful-balance section ends by 5:40
 
         # Fade everything out
         self.play(
             FadeOut(VGroup(
                 var_ticks, var_labels, var_type_labels,
                 check_nodes, check_node_labels, edge_group,
-                solved1, solved2, solved4
+                solved1, solved2, solved4, balance_text
             )),
             run_time=1.0
         )

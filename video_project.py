@@ -1611,8 +1611,10 @@ class RealWorld(Scene):
                      font_size=21, color=LIGHT_GRAY)
         ref_3 = Text("- Synopsys. ECC Memory Error Correction.",
                      font_size=21, color=LIGHT_GRAY)
+        ref_4 = Text("- Chung et al. (2001). LDPC Codes within 0.0045 dB of Shannon Limit.",
+                     font_size=21, color=LIGHT_GRAY)
 
-        refs = VGroup(ref_header, ref_1, ref_2, ref_3)
+        refs = VGroup(ref_header, ref_1, ref_2, ref_3, ref_4)
         refs.arrange(DOWN, aligned_edge=LEFT, buff=0.42)
         refs.move_to([0, -0.6, 0])
 
@@ -1620,6 +1622,342 @@ class RealWorld(Scene):
         self.play(FadeIn(ref_1), run_time=0.5)
         self.play(FadeIn(ref_2), run_time=0.5)
         self.play(FadeIn(ref_3), run_time=0.5)
+        self.play(FadeIn(ref_4), run_time=0.5)
 
         # Leave references on screen — end of video
         self.wait(12.0)
+
+
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scene 5 — ShannonLimit
+# Jongwook Part A (Shannon intro): ~70 words × 0.4 = 28.0 sec
+# Jongwook Part B (Comparison graph): ~75 words × 0.4 = 30.0 sec
+# Jongwook Part C (LDPC climax + outro): ~50 words × 0.4 = 20.0 sec
+# Total: ~78 sec (~1:18)
+# ─────────────────────────────────────────────────────────────────────────────
+class ShannonLimit(Scene):
+    def construct(self):
+# ═════════════════════════════════════════════════════════════════════
+        # PART A — Shannon Introduction (text only, no photo)
+        # ═════════════════════════════════════════════════════════════════════
+
+        # "So we've seen that LDPC can correct multi-bit errors that Hamming
+        # codes cannot. But that's not the only advantage. There's something
+        # deeper that makes LDPC truly remarkable."
+        # ~30 words × 0.4 = 12.0 sec
+
+        intro_text = Text(
+            "LDPC's deeper advantage",
+            font_size=46, color=YELLOW, weight=BOLD
+        )
+        intro_text.to_edge(UP, buff=0.6)
+
+        self.play(FadeIn(intro_text), run_time=0.8)
+        self.wait(12.0 - 0.8)  # 11.2 sec
+
+        # "In 1948, Claude Shannon proved that every noisy channel has a
+        # maximum data rate, called the Shannon Limit."
+        # ~20 words × 0.4 = 8.0 sec
+
+        # Fade out intro
+        self.play(FadeOut(intro_text), run_time=0.5)
+
+        # Year "1948" big and centered
+        year_text = Text("1948", font_size=120, color=WHITE, weight=BOLD)
+        self.play(Write(year_text), run_time=1.2)
+        self.wait(2.0)
+
+        # Move year to top
+        year_small = Text("1948", font_size=56, color=YELLOW, weight=BOLD)
+        year_small.to_edge(UP, buff=0.6)
+
+        # Shannon name (no photo)
+        shannon_name = Text(
+            "Claude Shannon",
+            font_size=42, color=WHITE, weight=BOLD
+        )
+        shannon_name.move_to([0, 1.5, 0])
+
+        shannon_sublabel = Text(
+            "Bell Labs, 1948",
+            font_size=24, color=BLUE_B
+        )
+        shannon_sublabel.next_to(shannon_name, DOWN, buff=0.25)
+
+        self.play(
+            Transform(year_text, year_small),
+            FadeIn(shannon_name),
+            FadeIn(shannon_sublabel),
+            run_time=1.2
+        )
+
+        # Shannon Limit definition (centered below name)
+        defn_title = Text(
+            "Shannon Limit",
+            font_size=44, color=YELLOW, weight=BOLD
+        )
+        defn_title.move_to([0, -0.3, 0])
+
+        defn_line = Text(
+            "Maximum data rate of a noisy channel",
+            font_size=28, color=WHITE
+        )
+        defn_line.next_to(defn_title, DOWN, buff=0.4)
+
+        self.play(FadeIn(defn_title), run_time=0.6)
+        self.play(FadeIn(defn_line), run_time=0.6)
+        self.wait(8.0 - 1.2 - 0.6 - 0.6)  # ~5.6 sec
+
+        # "Below it, reliable communication is possible. Above it, errors are
+        # inevitable. It's a hard wall built into information itself."
+        # ~20 words × 0.4 = 8.0 sec
+
+        below_text = Text(
+            "✓ Below: reliable",
+            font_size=26, color=GREEN_B
+        )
+        below_text.move_to([-2.5, -2.0, 0])
+
+        above_text = Text(
+            "✗ Above: errors inevitable",
+            font_size=26, color=RED_B
+        )
+        above_text.move_to([2.5, -2.0, 0])
+
+        self.play(FadeIn(below_text), run_time=0.5)
+        self.wait(2.0)
+        self.play(FadeIn(above_text), run_time=0.5)
+        self.wait(8.0 - 0.5 - 2.0 - 0.5)  # 5.0 sec
+
+        # Fade everything out for graph
+        self.play(
+            FadeOut(Group(
+                year_text, shannon_name, shannon_sublabel,
+                defn_title, defn_line, below_text, above_text
+            )),
+            run_time=1.0
+        )
+
+        # ═════════════════════════════════════════════════════════════════════
+# ═════════════════════════════════════════════════════════════════════
+        # PART B — Bar chart: distance from Shannon Limit
+        # ═════════════════════════════════════════════════════════════════════
+
+        # "Every code is judged by how close to this wall it can operate.
+        # The closer, the better."
+        # ~15 words × 0.4 = 6.0 sec
+
+        graph_title = Text(
+            "Distance from Shannon Limit",
+            font_size=38, color=YELLOW, weight=BOLD
+        )
+        graph_title.to_edge(UP, buff=0.45)
+
+        # Shannon Limit vertical line on the LEFT (wall)
+        wall_x = -5.5
+        wall_y_top = 2.3
+        wall_y_bot = -2.5
+
+        wall_line = DashedLine(
+            start=[wall_x, wall_y_top, 0],
+            end=[wall_x, wall_y_bot, 0],
+            color=RED,
+            stroke_width=5,
+            dash_length=0.18,
+        )
+        wall_label = Text(
+            "Shannon Limit",
+            font_size=22, color=RED, weight=BOLD
+        )
+        wall_label.move_to([wall_x - 0.05, wall_y_top + 0.35, 0])
+
+        # X-axis (bottom)
+        x_axis = Line(
+            start=[wall_x, wall_y_bot - 0.1, 0],
+            end=[5.5, wall_y_bot - 0.1, 0],
+            color=GRAY_B, stroke_width=2
+        )
+        x_axis_label = Text(
+            "Distance →",
+            font_size=20, color=GRAY_B
+        )
+        x_axis_label.move_to([4.2, wall_y_bot - 0.5, 0])
+
+        self.play(FadeIn(graph_title), run_time=0.6)
+        self.play(
+            Create(wall_line), FadeIn(wall_label),
+            Create(x_axis), FadeIn(x_axis_label),
+            run_time=1.2
+        )
+        self.wait(6.0 - 0.6 - 1.2)  # 4.2 sec
+
+        # "Earlier codes like Hamming, Reed-Solomon, and concatenated codes —
+        # the same family that brought images back from Voyager — all operated
+        # several decibels away from the Shannon Limit."
+        # ~30 words × 0.4 = 12.0 sec
+
+        # Bar properties
+        bar_height = 0.55
+        bar_start_x = wall_x  # all bars start at the wall
+
+        # ─── Hamming bar (longest, farthest) ─────────────────────────────
+        hamming_y = 1.5
+        hamming_length = 9.5  # very long
+        hamming_bar = Rectangle(
+            width=hamming_length,
+            height=bar_height,
+            fill_color=BLUE_B,
+            fill_opacity=0.7,
+            stroke_color=BLUE_B,
+            stroke_width=2,
+        )
+        hamming_bar.move_to([bar_start_x + hamming_length / 2, hamming_y, 0])
+        hamming_label = Text(
+            "Hamming", font_size=22, color=BLUE_B, weight=BOLD
+        )
+        hamming_label.next_to(hamming_bar, RIGHT, buff=0.2)
+
+        # ─── Reed-Solomon bar ─────────────────────────────────────────────
+        rs_y = 0.65
+        rs_length = 5.5
+        rs_bar = Rectangle(
+            width=rs_length,
+            height=bar_height,
+            fill_color=GREEN_B,
+            fill_opacity=0.7,
+            stroke_color=GREEN_B,
+            stroke_width=2,
+        )
+        rs_bar.move_to([bar_start_x + rs_length / 2, rs_y, 0])
+        rs_label = Text(
+            "Reed-Solomon", font_size=22, color=GREEN_B, weight=BOLD
+        )
+        rs_label.next_to(rs_bar, RIGHT, buff=0.2)
+
+        # ─── Concatenated bar ─────────────────────────────────────────────
+        concat_y = -0.2
+        concat_length = 2.8
+        concat_bar = Rectangle(
+            width=concat_length,
+            height=bar_height,
+            fill_color=ORANGE,
+            fill_opacity=0.7,
+            stroke_color=ORANGE,
+            stroke_width=2,
+        )
+        concat_bar.move_to([bar_start_x + concat_length / 2, concat_y, 0])
+        concat_label = Text(
+            "Concatenated", font_size=22, color=ORANGE, weight=BOLD
+        )
+        concat_label.next_to(concat_bar, RIGHT, buff=0.2)
+        voyager_note = Text(
+            "(Voyager)", font_size=16, color=ORANGE
+        )
+        voyager_note.next_to(concat_label, RIGHT, buff=0.15)
+
+        # Animate bars from longest (worst) to shortest
+        self.play(
+            GrowFromEdge(hamming_bar, LEFT),
+            FadeIn(hamming_label),
+            run_time=1.0
+        )
+        self.wait(2.5)
+
+        self.play(
+            GrowFromEdge(rs_bar, LEFT),
+            FadeIn(rs_label),
+            run_time=1.0
+        )
+        self.wait(2.5)
+
+        self.play(
+            GrowFromEdge(concat_bar, LEFT),
+            FadeIn(concat_label),
+            FadeIn(voyager_note),
+            run_time=1.0
+        )
+        self.wait(12.0 - 1.0 - 2.5 - 1.0 - 2.5 - 1.0)  # 4.0 sec
+
+        # ═════════════════════════════════════════════════════════════════════
+        # PART C — LDPC: tiny bar, almost touching the wall
+        # ═════════════════════════════════════════════════════════════════════
+
+        # "LDPC changed everything. With a well-designed Tanner graph,
+        # LDPC reaches within 0.0045 decibels of the Shannon Limit.
+        # Essentially touching the wall."
+        # ~25 words × 0.4 = 10.0 sec
+
+        # ─── LDPC bar (tiny, almost invisible) ────────────────────────────
+        ldpc_y = -1.05
+        ldpc_length = 0.15  # essentially touching the wall
+        ldpc_bar = Rectangle(
+            width=ldpc_length,
+            height=bar_height,
+            fill_color=YELLOW,
+            fill_opacity=1.0,
+            stroke_color=YELLOW,
+            stroke_width=2.5,
+        )
+        ldpc_bar.move_to([bar_start_x + ldpc_length / 2, ldpc_y, 0])
+        ldpc_label = Text(
+            "LDPC", font_size=24, color=YELLOW, weight=BOLD
+        )
+        ldpc_label.next_to(ldpc_bar, RIGHT, buff=0.2)
+
+        # The only number on the chart: LDPC's 0.0045 dB
+        ldpc_value = Text(
+            "0.0045 dB",
+            font_size=22, color=YELLOW, weight=BOLD
+        )
+        ldpc_value.next_to(ldpc_label, RIGHT, buff=0.25)
+
+        self.play(
+            GrowFromEdge(ldpc_bar, LEFT),
+            FadeIn(ldpc_label),
+            run_time=1.2
+        )
+        self.play(FadeIn(ldpc_value), run_time=0.5)
+
+        # Highlight: LDPC bar pulses, wall pulses
+        self.play(
+            ldpc_bar.animate.set_fill(YELLOW, opacity=1.0).scale(1.15),
+            wall_line.animate.set_stroke(width=7),
+            run_time=0.6
+        )
+        self.play(
+            ldpc_bar.animate.scale(1 / 1.15),
+            run_time=0.4
+        )
+        self.wait(10.0 - 1.2 - 0.5 - 0.6 - 0.4)  # 7.3 sec
+
+        # "This is the real strength of LDPC. It sends data at the absolute
+        # edge of what information theory says is physically possible."
+        # ~22 words × 0.4 = 8.8 sec
+
+        final_text = Text(
+            "Essentially touching the wall",
+            font_size=32, color=GREEN, weight=BOLD
+        )
+        final_text.to_edge(DOWN, buff=0.4)
+
+        self.play(FadeIn(final_text), run_time=0.6)
+        self.wait(8.8 - 0.6)  # 8.2 sec
+
+        # Fade everything out
+        self.play(
+            FadeOut(Group(
+                graph_title,
+                wall_line, wall_label,
+                x_axis, x_axis_label,
+                hamming_bar, hamming_label,
+                rs_bar, rs_label,
+                concat_bar, concat_label, voyager_note,
+                ldpc_bar, ldpc_label, ldpc_value,
+                final_text
+            )),
+            run_time=1.0
+        )
+
+
